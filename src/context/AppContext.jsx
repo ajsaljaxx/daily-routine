@@ -33,7 +33,8 @@ const STORAGE_KEYS = {
   AI_CHAT: 'aura_ai_chat',
   NOTIFICATIONS: 'aura_notifications',
   ACTIVE_PAGE: 'aura_active_page',
-  DAY_COUNTER: 'aura_day_counter'
+  DAY_COUNTER: 'aura_day_counter',
+  STREAK_START_DATE: 'aura_streak_start_date'
 };
 
 function loadStorage(key, fallback) {
@@ -131,6 +132,29 @@ export function AppProvider({ children }) {
     const todayStr = new Date().toISOString().split('T')[0];
     setStreakStartDate(todayStr);
     showToast('Streak reset to Day 1 starting today!', 'info');
+  };
+
+  const incrementDay = () => {
+    setStreakStartDate(prev => {
+      const d = new Date(prev);
+      d.setDate(d.getDate() - 1);
+      return d.toISOString().split('T')[0];
+    });
+    showToast('Day streak incremented!', 'success');
+  };
+
+  const decrementDay = () => {
+    setStreakStartDate(prev => {
+      const d = new Date(prev);
+      d.setDate(d.getDate() + 1);
+      return d.toISOString().split('T')[0];
+    });
+  };
+
+  const setDayCounter = (days) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (Math.max(1, days) - 1));
+    setStreakStartDate(d.toISOString().split('T')[0]);
   };
 
   // Apply Theme
