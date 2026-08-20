@@ -53,17 +53,22 @@ export default function Sidebar() {
         borderBottom: '1px solid var(--border-subtle)'
       }}>
         <div style={{
-          width: '38px',
-          height: '38px',
+          width: '40px',
+          height: '40px',
           borderRadius: '12px',
-          background: 'var(--grad-royal)',
+          overflow: 'hidden',
+          boxShadow: '0 4px 14px rgba(36, 87, 255, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.15)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          color: '#FFFFFF',
-          boxShadow: 'var(--shadow-primary)'
+          background: '#0d172a',
+          flexShrink: 0
         }}>
-          <Sparkles size={20} />
+          <img 
+            src="/aura-logo.jpg" 
+            alt="AURA Logo" 
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+          />
         </div>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>

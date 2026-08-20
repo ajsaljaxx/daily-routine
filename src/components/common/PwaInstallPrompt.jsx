@@ -100,15 +100,20 @@ export default function PwaInstallPrompt() {
             width: '42px',
             height: '42px',
             borderRadius: '12px',
-            background: 'linear-gradient(135deg, #020202 0%, #141c24 100%)',
+            overflow: 'hidden',
             border: '1px solid rgba(178, 213, 229, 0.3)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            flexShrink: 0
+            flexShrink: 0,
+            background: '#0d172a'
           }}
         >
-          <Sparkles size={20} color="var(--primary-royal)" />
+          <img 
+            src="/aura-logo.jpg" 
+            alt="AURA Logo" 
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+          />
         </div>
 
         {/* Text Details */}

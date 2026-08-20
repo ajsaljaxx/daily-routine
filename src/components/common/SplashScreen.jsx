@@ -133,19 +133,23 @@ export default function SplashScreen({ isOpen, onClose, userName = 'Ajsal' }) {
         {/* Brand Icon & Welcome Tag */}
         <div
           style={{
-            width: '58px',
-            height: '58px',
-            borderRadius: '18px',
-            background: 'var(--grad-royal)',
-            boxShadow: '0 8px 28px rgba(36, 87, 255, 0.5)',
+            width: '64px',
+            height: '64px',
+            borderRadius: '20px',
+            overflow: 'hidden',
+            boxShadow: '0 8px 28px rgba(36, 87, 255, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.2)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: '#FFFFFF',
+            background: '#0d172a',
             marginBottom: '18px'
           }}
         >
-          <Sparkles size={30} />
+          <img 
+            src="/aura-logo.jpg" 
+            alt="AURA Logo" 
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+          />
         </div>
 
         {/* Personalized Greeting */}
