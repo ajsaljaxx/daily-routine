@@ -9,7 +9,7 @@ export const INITIAL_USER_PROFILE = {
   dailySleepTarget: 7.5, // in hours
   dailyWaterTarget: 8, // in glasses (250ml each)
   aiProvider: 'gemini', // 'gemini' | 'openai' | 'ollama' | 'builtin'
-  aiApiKey: '',
+  aiApiKey: (import.meta.env.VITE_GEMINI_API_KEY || '').trim(),
   notificationsEnabled: true
 };
 
