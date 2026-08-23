@@ -84,7 +84,10 @@ export default function SettingsView() {
         if (successModel) {
           setTestResult({ success: true, message: `Google Gemini (${successModel}) Connected & Working Live! ⚡` });
         } else {
-          throw new Error(lastErr || 'Google Gemini API key invalid or unsupported model');
+          if (!aiApiKey.trim().startsWith('AIzaSy')) {
+            throw new Error('Invalid key format. Google Gemini API keys start with "AIzaSy...". Click "Get Free Gemini Key →" above to get one!');
+          }
+          throw new Error('Google Gemini API Key rejected. Please check or regenerate your key at aistudio.google.com');
         }
       } else if (aiProvider === 'openai') {
         const res = await fetch('https://api.openai.com/v1/chat/completions', {
