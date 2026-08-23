@@ -31,6 +31,60 @@ export default function SettingsView() {
   const [aiApiKey, setAiApiKey] = useState(userProfile?.aiApiKey || '');
   const [notificationsEnabled, setNotificationsEnabled] = useState(userProfile?.notificationsEnabled ?? true);
 
+  const [isTesting, setIsTesting] = useState(false);
+  const [testResult, setTestResult] = useState(null);
+
+  const handleTestConnection = async () => {
+    if (!aiApiKey.trim()) {
+      setTestResult({ success: false, message: 'Please paste your API Key first!' });
+      return;
+    }
+
+    setIsTesting(true);
+    setTestResult(null);
+
+    try {
+      if (aiProvider === 'gemini') {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${aiApiKey.trim()}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ role: 'user', parts: [{ text: 'Hello' }] }]
+          })
+        });
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.error?.message || `Google API error (Status ${res.status})`);
+        }
+        setTestResult({ success: true, message: 'Google Gemini 1.5 Flash Connected & Working Live! ⚡' });
+      } else if (aiProvider === 'openai') {
+        const res = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${aiApiKey.trim()}`
+          },
+          body: JSON.stringify({
+            model: 'gpt-4o-mini',
+            messages: [{ role: 'user', content: 'hi' }],
+            max_tokens: 5
+          })
+        });
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.error?.message || `OpenAI error (Status ${res.status})`);
+        }
+        setTestResult({ success: true, message: 'OpenAI GPT-4o-mini Connected & Working Live! ⚡' });
+      }
+    } catch (err) {
+      setTestResult({ success: false, message: err.message || 'Connection test failed. Check key validity.' });
+    } finally {
+      setIsTesting(false);
+    }
+  };
+
   const handleSaveProfile = (e) => {
     e.preventDefault();
     setUserProfile(prev => ({
@@ -258,11 +312,38 @@ export default function SettingsView() {
                 onChange={e => setAiApiKey(e.target.value)}
                 autoComplete="off"
               />
-              <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+              <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '2px', display: 'block' }}>
                 {aiProvider === 'gemini'
                   ? "Get your free API key at aistudio.google.com and paste it here."
                   : "Enter your OpenAI platform secret key."}
               </span>
+
+              {/* Test Connection Button & Result */}
+              <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  onClick={handleTestConnection}
+                  disabled={isTesting}
+                  className="btn btn-secondary btn-sm"
+                  style={{ fontSize: '0.78rem', fontWeight: 600 }}
+                >
+                  {isTesting ? 'Testing Connection...' : '⚡ Test API Key Connection'}
+                </button>
+
+                {testResult && (
+                  <span style={{
+                    fontSize: '0.78rem',
+                    fontWeight: 700,
+                    padding: '4px 10px',
+                    borderRadius: 'var(--radius-sm)',
+                    background: testResult.success ? 'var(--success-bg)' : 'var(--danger-bg)',
+                    color: testResult.success ? 'var(--success)' : 'var(--danger)',
+                    border: `1px solid ${testResult.success ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`
+                  }}>
+                    {testResult.success ? '✅ ' : '❌ '}{testResult.message}
+                  </span>
+                )}
+              </div>
             </div>
           )}
 
