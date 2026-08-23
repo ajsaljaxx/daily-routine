@@ -11,7 +11,8 @@ import {
   Bell,
   Save,
   CheckCircle2,
-  Shield
+  Shield,
+  Sparkles
 } from 'lucide-react';
 
 export default function SettingsView() {
