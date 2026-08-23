@@ -3,9 +3,11 @@ import { useApp } from '../../../context/AppContext';
 import { Moon, ArrowUpRight } from 'lucide-react';
 
 export function SleepQuickCard() {
-  const { sleep, setActivePage } = useApp();
-  const lastNight = sleep.lastNight || { durationHours: 7.0, from: '23:15', to: '06:15' };
+  const { sleep, userProfile, setActivePage } = useApp();
+  const lastNight = sleep.lastNight || { durationHours: 0, from: '23:00', to: '05:30' };
   const history = sleep.history || [];
+  const targetGoal = Number(userProfile?.dailySleepTarget) || 7.5;
+  const currentDuration = Number(lastNight.durationHours) || 0;
 
   // Monthly calculation starting with current month
   const now = new Date();
@@ -17,12 +19,39 @@ export function SleepQuickCard() {
   const monthlyRecords = history.filter(h => h.date && h.date.startsWith(currentMonthPrefix));
   const activeRecords = monthlyRecords.length > 0 ? monthlyRecords : history;
 
-  const totalMonthlyHours = activeRecords.reduce((sum, h) => sum + (Number(h.duration) || 7.0), 0);
+  const totalMonthlyHours = activeRecords.reduce((sum, h) => sum + (Number(h.duration) || 0), 0);
   const avgMonthlyHours = (totalMonthlyHours / (activeRecords.length || 1)).toFixed(1);
 
-  // Single Rating: "You're doing well" or "You're not sleeping well, you want more rest"
-  const isDoingWell = Number(avgMonthlyHours) >= 7.0;
-  const ratingText = isDoingWell ? "You're doing well 🎉" : "You're not sleeping well, you want more rest ⚠️";
+  // Exact 3-condition Status Evaluator based on daily target goal
+  let statusBadge = {
+    text: "You're sleeping well 🎉",
+    color: "var(--success)",
+    bg: "var(--success-bg)",
+    border: "rgba(16, 185, 129, 0.25)"
+  };
+
+  if (currentDuration < targetGoal) {
+    statusBadge = {
+      text: "You want more rest ⚠️",
+      color: "#D97706",
+      bg: "rgba(245, 158, 11, 0.12)",
+      border: "rgba(245, 158, 11, 0.3)"
+    };
+  } else if (currentDuration > targetGoal + 1.0) {
+    statusBadge = {
+      text: "Sleeping unnecessarily ⚠️",
+      color: "#2563EB",
+      bg: "rgba(37, 99, 235, 0.12)",
+      border: "rgba(37, 99, 235, 0.3)"
+    };
+  } else {
+    statusBadge = {
+      text: "You're sleeping well 🎉",
+      color: "var(--success)",
+      bg: "var(--success-bg)",
+      border: "rgba(16, 185, 129, 0.25)"
+    };
+  }
 
   return (
     <div className="aura-card">
@@ -46,14 +75,14 @@ export function SleepQuickCard() {
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '8px' }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
           <span style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1 }}>
-            {lastNight.durationHours}h
+            {currentDuration}h
           </span>
           <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
             Last night
           </span>
         </div>
         <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-          {monthName} Avg: <strong style={{ color: isDoingWell ? 'var(--success)' : '#F59E0B' }}>{avgMonthlyHours}h</strong>
+          {monthName} Avg: <strong style={{ color: Number(avgMonthlyHours) >= targetGoal ? 'var(--success)' : '#F59E0B' }}>{avgMonthlyHours}h</strong>
         </div>
       </div>
 
@@ -75,21 +104,21 @@ export function SleepQuickCard() {
         </div>
       </div>
 
-      {/* Single Rating Status Badge */}
+      {/* 3-Condition Status Badge */}
       <div style={{
         padding: '7px 10px',
         borderRadius: 'var(--radius-sm)',
-        background: isDoingWell ? 'var(--success-bg)' : 'rgba(245, 158, 11, 0.12)',
-        border: `1px solid ${isDoingWell ? 'rgba(16, 185, 129, 0.25)' : 'rgba(245, 158, 11, 0.3)'}`,
+        background: statusBadge.bg,
+        border: `1px solid ${statusBadge.border}`,
         fontSize: '0.78rem',
         fontWeight: 700,
-        color: isDoingWell ? 'var(--success)' : '#D97706',
+        color: statusBadge.color,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         textAlign: 'center'
       }}>
-        {ratingText}
+        {statusBadge.text}
       </div>
     </div>
   );

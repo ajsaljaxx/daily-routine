@@ -33,12 +33,46 @@ export default function SleepView() {
   const daysLogged = activeRecords.length || 1;
   const avgMonthlyHours = (totalMonthlyHours / daysLogged).toFixed(1);
 
-  // Single rating verdict: "You're doing well" or "You're not sleeping well, you want more rest"
-  const isDoingWell = Number(avgMonthlyHours) >= Number(dailyTarget || 7.0);
-  const ratingVerdict = isDoingWell ? "You're doing well 🎉" : "You're not sleeping well, you want more rest ⚠️";
-  const ratingDetail = isDoingWell
-    ? `Your ${monthName} sleep average is ${avgMonthlyHours}h / night, achieving your ${dailyTarget}h daily target.`
-    : `Your ${monthName} sleep average is ${avgMonthlyHours}h / night (target: ${dailyTarget}h). Prioritize earlier bedtimes to give your body more rest.`;
+  const currentDuration = Number(lastNight?.durationHours) || 0;
+  const targetGoal = Number(dailyTarget) || 7.5;
+
+  let sleepEval = {
+    verdict: "You're sleeping well 🎉",
+    detail: `Your logged rest of ${currentDuration}h matches your ${targetGoal}h daily goal.`,
+    color: "var(--success)",
+    bg: "linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(36, 87, 255, 0.08) 100%)",
+    border: "rgba(16, 185, 129, 0.3)",
+    iconBg: "var(--success)"
+  };
+
+  if (currentDuration < targetGoal) {
+    sleepEval = {
+      verdict: "You want more rest ⚠️",
+      detail: `Your logged rest of ${currentDuration}h is below your ${targetGoal}h daily goal. Prioritize earlier bedtimes to give your body more rest.`,
+      color: "#D97706",
+      bg: "linear-gradient(135deg, rgba(245, 158, 11, 0.14) 0%, rgba(239, 68, 68, 0.08) 100%)",
+      border: "rgba(245, 158, 11, 0.35)",
+      iconBg: "#F59E0B"
+    };
+  } else if (currentDuration > targetGoal + 1.0) {
+    sleepEval = {
+      verdict: "Sleeping unnecessarily ⚠️",
+      detail: `Your logged rest of ${currentDuration}h is more than 1 hour over your ${targetGoal}h daily goal (${(currentDuration - targetGoal).toFixed(1)}h extra).`,
+      color: "#2563EB",
+      bg: "linear-gradient(135deg, rgba(37, 99, 235, 0.14) 0%, rgba(59, 130, 246, 0.08) 100%)",
+      border: "rgba(37, 99, 235, 0.35)",
+      iconBg: "#2563EB"
+    };
+  } else {
+    sleepEval = {
+      verdict: "You're sleeping well 🎉",
+      detail: `Your logged rest of ${currentDuration}h is on target with your ${targetGoal}h daily goal.`,
+      color: "var(--success)",
+      bg: "linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(36, 87, 255, 0.08) 100%)",
+      border: "rgba(16, 185, 129, 0.3)",
+      iconBg: "var(--success)"
+    };
+  }
 
   const handleSaveSleep = (e) => {
     e.preventDefault();
@@ -96,10 +130,8 @@ export default function SleepView() {
       <div
         className="aura-card"
         style={{
-          background: isDoingWell
-            ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(36, 87, 255, 0.08) 100%)'
-            : 'linear-gradient(135deg, rgba(245, 158, 11, 0.14) 0%, rgba(239, 68, 68, 0.08) 100%)',
-          border: `1px solid ${isDoingWell ? 'rgba(16, 185, 129, 0.3)' : 'rgba(245, 158, 11, 0.35)'}`,
+          background: sleepEval.bg,
+          border: `1px solid ${sleepEval.border}`,
           padding: '20px 24px',
           marginBottom: '24px',
           display: 'flex',
@@ -114,39 +146,43 @@ export default function SleepView() {
             width: '48px',
             height: '48px',
             borderRadius: 'var(--radius-md)',
-            background: isDoingWell ? 'var(--success)' : '#F59E0B',
+            background: sleepEval.iconBg,
             color: '#FFFFFF',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: isDoingWell ? '0 4px 14px rgba(16, 185, 129, 0.35)' : '0 4px 14px rgba(245, 158, 11, 0.35)'
+            boxShadow: '0 4px 14px rgba(0,0,0,0.15)'
           }}>
-            {isDoingWell ? <CheckCircle2 size={26} /> : <AlertTriangle size={26} />}
+            {currentDuration >= targetGoal && currentDuration <= targetGoal + 1.0 ? (
+              <CheckCircle2 size={26} />
+            ) : (
+              <AlertTriangle size={26} />
+            )}
           </div>
           <div>
             <div style={{ fontSize: '0.76rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-              Monthly Sleep Rating
+              Sleep Assessment
             </div>
             <h2 style={{ fontSize: '1.4rem', fontWeight: 800, margin: '2px 0 4px', color: 'var(--text-primary)' }}>
-              {ratingVerdict}
+              {sleepEval.verdict}
             </h2>
             <p style={{ fontSize: '0.86rem', color: 'var(--text-secondary)', margin: 0 }}>
-              {ratingDetail}
+              {sleepEval.detail}
             </p>
           </div>
         </div>
 
         <div style={{ textAlign: 'right', display: 'flex', gap: '20px' }}>
           <div>
-            <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', display: 'block' }}>Monthly Avg</span>
-            <strong style={{ fontSize: '1.5rem', fontWeight: 800, color: isDoingWell ? 'var(--success)' : '#F59E0B' }}>
-              {avgMonthlyHours}h
+            <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', display: 'block' }}>Today's Rest</span>
+            <strong style={{ fontSize: '1.5rem', fontWeight: 800, color: sleepEval.color }}>
+              {currentDuration}h
             </strong>
           </div>
           <div>
-            <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', display: 'block' }}>Total Logged</span>
+            <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', display: 'block' }}>Monthly Avg</span>
             <strong style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-              {totalMonthlyHours.toFixed(1)}h
+              {avgMonthlyHours}h
             </strong>
           </div>
         </div>
@@ -387,7 +423,21 @@ export default function SleepView() {
             </thead>
             <tbody>
               {activeRecords.map((record, i) => {
-                const isEntryGood = (Number(record.duration) || 0) >= 7.0;
+                const dur = Number(record.duration) || 0;
+                let pillText = "You're Sleeping Well";
+                let pillBg = "var(--success-bg)";
+                let pillColor = "var(--success)";
+
+                if (dur < targetGoal) {
+                  pillText = "You Want More Rest";
+                  pillBg = "rgba(245, 158, 11, 0.15)";
+                  pillColor = "#D97706";
+                } else if (dur > targetGoal + 1.0) {
+                  pillText = "Sleeping Unnecessarily";
+                  pillBg = "rgba(37, 99, 235, 0.15)";
+                  pillColor = "#2563EB";
+                }
+
                 return (
                   <tr key={i} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
                     <td style={{ padding: '12px', fontWeight: 600, color: 'var(--text-primary)' }}>{record.date}</td>
@@ -400,10 +450,10 @@ export default function SleepView() {
                         fontWeight: 700,
                         padding: '3px 8px',
                         borderRadius: 'var(--radius-full)',
-                        background: isEntryGood ? 'var(--success-bg)' : 'rgba(245, 158, 11, 0.15)',
-                        color: isEntryGood ? 'var(--success)' : '#D97706'
+                        background: pillBg,
+                        color: pillColor
                       }}>
-                        {isEntryGood ? "Doing Well" : "Not Sleeping Well"}
+                        {pillText}
                       </span>
                     </td>
                   </tr>
