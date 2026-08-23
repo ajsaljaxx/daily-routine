@@ -311,10 +311,10 @@ export default function SettingsView() {
           <div className="form-group">
             <label>AI Provider Model</label>
             <select value={aiProvider} onChange={e => setAiProvider(e.target.value)}>
-              <option value="gemini">Google Gemini 1.5 Flash (Recommended — Free & Fast)</option>
+              <option value="gemini">Google Gemini 1.5 / 2.0 (Recommended — Free & Fast)</option>
+              <option value="groq">Groq Cloud (Llama-3.3 70B — 100% Free & Superfast)</option>
               <option value="openai">OpenAI GPT-4o-mini</option>
-              <option value="ollama">Local Ollama (Offline / Llama 3)</option>
-              <option value="builtin">Built-in Offline Rule Engine (No API Key Required)</option>
+              <option value="builtin">Built-in Offline Companion Engine</option>
             </select>
           </div>
 

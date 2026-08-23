@@ -222,6 +222,45 @@ async function callGeminiApi(apiKey, messagesHistory, systemPrompt) {
 }
 
 /**
+ * Calls Groq API (llama-3.3-70b-versatile) - 100% Free Lightning Fast LLM
+ */
+async function callGroqApi(apiKey, messagesHistory, systemPrompt) {
+  const url = 'https://api.groq.com/openai/v1/chat/completions';
+
+  const messages = [
+    { role: 'system', content: systemPrompt },
+    ...messagesHistory.slice(-10).map(m => ({
+      role: m.sender === 'user' ? 'user' : 'assistant',
+      content: m.text
+    }))
+  ];
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey.trim()}`
+    },
+    body: JSON.stringify({
+      model: 'llama-3.3-70b-versatile',
+      messages,
+      temperature: 0.7,
+      max_tokens: 2048
+    })
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error?.message || `Groq API returned status ${response.status}`);
+  }
+
+  const data = await response.json();
+  const text = data.choices?.[0]?.message?.content;
+  if (!text) throw new Error('Empty response from Groq');
+  return text;
+}
+
+/**
  * Calls OpenAI API (gpt-4o-mini)
  */
 async function callOpenAiApi(apiKey, messagesHistory, systemPrompt) {
@@ -269,8 +308,23 @@ export async function generateAiResponse(userMessage, context, chatHistory = [],
   const systemPrompt = buildFriendSystemPrompt(context, friendVibe);
   const fullHistory = [...chatHistory, { sender: 'user', text: userMessage }];
 
-  // 1. Google Gemini API (If key configured)
-  if (provider === 'gemini' && apiKey) {
+  // 1. Groq Llama-3 (If Groq provider or gsk_ key configured)
+  if ((provider === 'groq' || apiKey.startsWith('gsk_')) && apiKey) {
+    try {
+      const text = await callGroqApi(apiKey, fullHistory, systemPrompt);
+      return {
+        id: 'aura-' + Date.now(),
+        sender: 'aura',
+        text,
+        engine: 'Groq (Llama-3.3 70B)'
+      };
+    } catch (err) {
+      console.warn('Groq call failed:', err);
+    }
+  }
+
+  // 2. Google Gemini API (If key configured)
+  if (provider === 'gemini' && apiKey && !apiKey.startsWith('gsk_')) {
     try {
       const { text, modelName } = await callGeminiApi(apiKey, fullHistory, systemPrompt);
       return {
@@ -280,7 +334,7 @@ export async function generateAiResponse(userMessage, context, chatHistory = [],
         engine: `Gemini (${modelName})`
       };
     } catch (err) {
-      console.warn('Gemini call failed, trying free online companion gateway:', err);
+      console.warn('Gemini call failed:', err);
     }
   }
 
