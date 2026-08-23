@@ -88,7 +88,7 @@ export default function SleepView() {
 
         <button className="btn btn-primary" onClick={() => setIsModalOpen(true)} style={{ gap: '8px' }}>
           <Plus size={18} />
-          <span>Log Sleep</span>
+          <span>Record Sleep</span>
         </button>
       </div>
 
@@ -414,22 +414,22 @@ export default function SleepView() {
         </div>
       </div>
 
-      {/* Log Sleep Modal */}
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Record Night Sleep" maxWidth="480px">
+      {/* Record Sleep Modal */}
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Record Sleep & Extra Rest" maxWidth="480px">
         <form onSubmit={handleSaveSleep}>
           <div className="form-row">
             <div className="form-group">
-              <label>Bedtime (From)</label>
+              <label>Rest From</label>
               <input type="time" value={fromTime} onChange={e => setFromTime(e.target.value)} required />
             </div>
             <div className="form-group">
-              <label>Wake-up (To)</label>
+              <label>Rest To</label>
               <input type="time" value={toTime} onChange={e => setToTime(e.target.value)} required />
             </div>
           </div>
 
           <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '10px' }}>
-            Save Sleep Log
+            Record Sleep & Add to Today's Total
           </button>
         </form>
       </Modal>

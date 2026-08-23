@@ -255,7 +255,7 @@ export default function QuickActionModal({ isOpen, onClose }) {
             </div>
           </div>
           <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '8px' }}>
-            Save Sleep Record
+            Record Sleep & Add to Today's Total
           </button>
         </form>
       )}

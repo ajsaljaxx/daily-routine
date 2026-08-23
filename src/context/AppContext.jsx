@@ -128,8 +128,25 @@ export function AppProvider({ children }) {
 
   const dayCounter = calculateDayCounter();
 
+  const calculateDuration = (fromTime, toTime) => {
+    try {
+      const [fromH, fromM] = (fromTime || "23:00").split(':').map(Number);
+      const [toH, toM] = (toTime || "05:30").split(':').map(Number);
+      let diffMinutes = (toH * 60 + toM) - (fromH * 60 + fromM);
+      if (diffMinutes < 0) diffMinutes += 24 * 60;
+      return Number((diffMinutes / 60).toFixed(1));
+    } catch (e) {
+      return 6.5;
+    }
+  };
+
   // Reset all daily trackers to initial unselected state for a new day
   const resetDailyProgress = () => {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const fromT = userProfile?.targetSleepTime || "23:00";
+    const toT = userProfile?.targetWakeTime || "05:30";
+    const baseSleepHours = calculateDuration(fromT, toT);
+
     // 1. Reset Swalah Prayers to uncompleted (nothing selected)
     setPrayers(prev => prev.map(p => ({ ...p, completed: false })));
 
@@ -142,16 +159,23 @@ export function AppProvider({ children }) {
     // 4. Reset Hydration glasses
     setWaterGlasses(0);
 
-    // 5. Reset Sleep Recovery log for new day
-    setSleep(prev => ({
-      ...prev,
-      lastNight: {
-        from: userProfile?.targetSleepTime || "23:00",
-        to: userProfile?.targetWakeTime || "05:30",
-        durationHours: 0,
-        date: new Date().toISOString().split('T')[0]
-      }
-    }));
+    // 5. Sleep Recovery: Calculate primary night sleep for the new day
+    setSleep(prev => {
+      const newNight = {
+        from: fromT,
+        to: toT,
+        durationHours: baseSleepHours,
+        date: todayStr
+      };
+      const filteredHistory = (prev.history || []).filter(h => h.date !== todayStr);
+      return {
+        lastNight: newNight,
+        history: [
+          { date: todayStr, from: fromT, to: toT, duration: baseSleepHours },
+          ...filteredHistory
+        ].slice(0, 31)
+      };
+    });
   };
 
   // Automatic Calendar Midnight Rollover
@@ -355,38 +379,33 @@ export function AppProvider({ children }) {
     showToast('Task updated', 'success');
   };
 
-  // Sleep Handlers
+  // Sleep Handlers: Record Night Sleep or Extra Sleep / Naps
   const logSleep = (sleepEntry) => {
     const fromTime = sleepEntry.from || "23:00";
-    const toTime = sleepEntry.to || "06:30";
-
-    const [fromH, fromM] = fromTime.split(':').map(Number);
-    const [toH, toM] = toTime.split(':').map(Number);
-
-    let diffMinutes = (toH * 60 + toM) - (fromH * 60 + fromM);
-    if (diffMinutes < 0) {
-      diffMinutes += 24 * 60; // crossed midnight
-    }
-
-    const durationHours = Number((diffMinutes / 60).toFixed(1));
-
-    const newRecord = {
-      ...sleepEntry,
-      durationHours,
-      date: new Date().toISOString().split('T')[0]
-    };
+    const toTime = sleepEntry.to || "06:00";
+    const addedHours = calculateDuration(fromTime, toTime);
+    const todayStr = new Date().toISOString().split('T')[0];
 
     setSleep(prev => {
-      const filteredHistory = (prev.history || []).filter(h => h.date !== newRecord.date);
+      const currentNight = prev.lastNight || { durationHours: 0, from: "23:00", to: "06:00" };
+      const accumulatedHours = Number((Number(currentNight.durationHours || 0) + addedHours).toFixed(1));
+
+      const updatedNight = {
+        from: sleepEntry.overwrite ? fromTime : currentNight.from,
+        to: sleepEntry.overwrite ? toTime : currentNight.to,
+        durationHours: sleepEntry.overwrite ? addedHours : accumulatedHours,
+        date: todayStr
+      };
+
+      const filteredHistory = (prev.history || []).filter(h => h.date !== todayStr);
       return {
-        lastNight: newRecord,
+        lastNight: updatedNight,
         history: [
-          { date: newRecord.date, from: fromTime, to: toTime, duration: durationHours },
+          { date: todayStr, from: updatedNight.from, to: updatedNight.to, duration: updatedNight.durationHours },
           ...filteredHistory
         ].slice(0, 31)
       };
     });
-    showToast(`Sleep logged: ${durationHours} hours (${fromTime} → ${toTime}) 🌙`, 'success');
   };
 
   // Meals & Water Handlers
