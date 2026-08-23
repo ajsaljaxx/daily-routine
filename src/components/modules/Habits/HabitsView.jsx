@@ -121,108 +121,28 @@ export default function HabitsView() {
         </div>
       </div>
 
-      {/* Tabs Row */}
+      {/* Habit Progress Header */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
-        gap: '10px',
-        borderBottom: '1px solid var(--border-light)',
-        paddingBottom: '12px',
-        marginBottom: '24px',
-        overflowX: 'auto'
+        justifyContent: 'space-between',
+        marginBottom: '20px',
+        background: 'var(--bg-surface)',
+        padding: '14px 20px',
+        borderRadius: 'var(--radius-md)',
+        border: '1px solid var(--border-light)'
       }}>
-        {[
-          { id: 'all', label: 'All Habits', count: habits.length },
-          { id: 'swalah', label: 'Swalah 5 Prayers', count: '5' },
-          { id: 'quran', label: 'Qur’an 1 Juz Tracker' },
-          { id: 'analytics', label: 'Habit Analytics & Streaks' }
-        ].map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            style={{
-              padding: '8px 16px',
-              borderRadius: 'var(--radius-full)',
-              fontSize: '0.88rem',
-              fontWeight: activeTab === tab.id ? 700 : 500,
-              backgroundColor: activeTab === tab.id ? 'var(--primary-royal)' : 'transparent',
-              color: activeTab === tab.id ? '#FFFFFF' : 'var(--text-secondary)',
-              transition: 'all var(--transition-fast)',
-              whiteSpace: 'nowrap'
-            }}
-          >
-            {tab.label}
-          </button>
-        ))}
+        <span style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+          Daily Habits Tracker
+        </span>
+        <div style={{ fontSize: '0.88rem', color: 'var(--primary-royal)', fontWeight: 700 }}>
+          {completedCount} of {habits.length} Habits Completed ({progressPercent}%)
+        </div>
       </div>
 
-      {/* Tab: Analytics View */}
-      {activeTab === 'analytics' && (
-        <HabitAnalytics habits={habits} prayers={prayers} quran={quran} />
-      )}
-
-      {/* Tab: Swalah Dedicated View */}
-      {activeTab === 'swalah' && (
-        <div style={{ maxWidth: '780px', margin: '0 auto' }}>
-          <div style={{ marginBottom: '20px' }}>
-            <PrayerQuickTracker />
-          </div>
-        </div>
-      )}
-
-      {/* Tab: Qur'an Dedicated View */}
-      {activeTab === 'quran' && (
-        <div style={{ maxWidth: '780px', margin: '0 auto' }}>
-          <QuranQuickTracker />
-        </div>
-      )}
-
-      {/* Tab: All Habits List (Default) */}
-      {activeTab === 'all' && (
-        <>
-          {/* Swalah & Quran summary card in All View */}
-          <div className="grid-2-col" style={{ marginBottom: '24px' }}>
-            <PrayerQuickTracker />
-            <QuranQuickTracker />
-          </div>
-
-          {/* Category Filter Pills & Habit Progress Card */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: '18px',
-            flexWrap: 'wrap',
-            gap: '12px'
-          }}>
-            <div style={{ display: 'flex', gap: '8px', overflowX: 'auto' }}>
-              {categories.map(cat => (
-                <button
-                  key={cat}
-                  onClick={() => setSelectedCategory(cat)}
-                  style={{
-                    padding: '6px 14px',
-                    borderRadius: 'var(--radius-full)',
-                    fontSize: '0.82rem',
-                    fontWeight: selectedCategory === cat ? 700 : 500,
-                    backgroundColor: selectedCategory === cat ? 'var(--bg-tertiary)' : 'var(--bg-surface)',
-                    color: selectedCategory === cat ? 'var(--primary-royal)' : 'var(--text-secondary)',
-                    border: `1px solid ${selectedCategory === cat ? 'var(--primary-royal)' : 'var(--border-light)'}`
-                  }}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
-
-            <div style={{ fontSize: '0.86rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
-              {completedCount} of {habits.length} Habits Completed ({progressPercent}%)
-            </div>
-          </div>
-
-          {/* Habit Cards Grid */}
-          <div className="grid-2-col">
-            {filteredHabits.map(habit => (
+      {/* Habit Cards Grid */}
+      <div className="grid-2-col">
+        {habits.map(habit => (
               <div
                 key={habit.id}
                 style={{
@@ -329,8 +249,6 @@ export default function HabitsView() {
               </div>
             ))}
           </div>
-        </>
-      )}
 
       {/* Habit Modal */}
       <HabitModal
