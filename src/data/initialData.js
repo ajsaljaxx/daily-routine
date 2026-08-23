@@ -14,16 +14,16 @@ export const INITIAL_USER_PROFILE = {
 };
 
 export const INITIAL_PRAYERS = [
-  { id: 'fajr', name: 'Fajr', arabicName: 'الفجر', time: '05:15 AM', completed: true },
-  { id: 'dhuhr', name: 'Dhuhr', arabicName: 'الظهر', time: '12:35 PM', completed: true },
-  { id: 'asr', name: 'Asr', arabicName: 'العصر', time: '04:15 PM', completed: true },
+  { id: 'fajr', name: 'Fajr', arabicName: 'الفجر', time: '05:15 AM', completed: false },
+  { id: 'dhuhr', name: 'Dhuhr', arabicName: 'الظهر', time: '12:35 PM', completed: false },
+  { id: 'asr', name: 'Asr', arabicName: 'العصر', time: '04:15 PM', completed: false },
   { id: 'maghrib', name: 'Maghrib', arabicName: 'المغرب', time: '06:45 PM', completed: false },
   { id: 'isha', name: 'Isha', arabicName: 'العشاء', time: '08:15 PM', completed: false }
 ];
 
 export const INITIAL_QURAN = {
   currentJuz: 14,
-  pagesReadToday: 18,
+  pagesReadToday: 0,
   targetPagesPerDay: 20,
   completedToday: false,
   totalJuzCompleted: 13,
@@ -39,7 +39,7 @@ export const INITIAL_HABITS = [
     frequency: 'Daily',
     streak: 8,
     bestStreak: 21,
-    completedToday: true,
+    completedToday: false,
     icon: 'Activity',
     color: '#36A269'
   },
@@ -51,7 +51,7 @@ export const INITIAL_HABITS = [
     streak: 14,
     bestStreak: 30,
     completedToday: false,
-    currentProgress: 6,
+    currentProgress: 0,
     targetProgress: 8,
     unit: 'glasses',
     icon: 'Droplets',
@@ -64,7 +64,7 @@ export const INITIAL_HABITS = [
     frequency: 'Daily',
     streak: 6,
     bestStreak: 15,
-    completedToday: true,
+    completedToday: false,
     icon: 'Code',
     color: '#2457FF'
   },
@@ -163,10 +163,10 @@ export const INITIAL_TASKS = [
 
 export const INITIAL_SLEEP_DATA = {
   lastNight: {
-    from: "23:15",
-    to: "06:15",
-    durationHours: 7.0,
-    date: "2026-08-18"
+    from: "23:00",
+    to: "05:30",
+    durationHours: 0,
+    date: new Date().toISOString().split('T')[0]
   },
   history: [
     { date: "2026-08-01", from: "23:00", to: "06:30", duration: 7.5 },

@@ -128,10 +128,47 @@ export function AppProvider({ children }) {
 
   const dayCounter = calculateDayCounter();
 
+  // Reset all daily trackers to initial unselected state for a new day
+  const resetDailyProgress = () => {
+    // 1. Reset Swalah Prayers to uncompleted (nothing selected)
+    setPrayers(prev => prev.map(p => ({ ...p, completed: false })));
+
+    // 2. Reset Qur'an daily pages to 0
+    setQuran(prev => ({ ...prev, pagesReadToday: 0, completedToday: false }));
+
+    // 3. Reset Daily Habits to uncompleted
+    setHabits(prev => prev.map(h => ({ ...h, completedToday: false })));
+
+    // 4. Reset Hydration glasses
+    setWaterGlasses(0);
+
+    // 5. Reset Sleep Recovery log for new day
+    setSleep(prev => ({
+      ...prev,
+      lastNight: {
+        from: userProfile?.targetSleepTime || "23:00",
+        to: userProfile?.targetWakeTime || "05:30",
+        durationHours: 0,
+        date: new Date().toISOString().split('T')[0]
+      }
+    }));
+  };
+
+  // Automatic Calendar Midnight Rollover
+  useEffect(() => {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const lastDate = loadStorage('aura_last_active_date', null);
+
+    if (lastDate && lastDate !== todayStr) {
+      resetDailyProgress();
+    }
+    saveStorage('aura_last_active_date', todayStr);
+  }, []);
+
   const resetDay = () => {
     const todayStr = new Date().toISOString().split('T')[0];
     setStreakStartDate(todayStr);
-    showToast('Streak reset to Day 1 starting today!', 'info');
+    resetDailyProgress();
   };
 
   const incrementDay = () => {
@@ -1026,6 +1063,7 @@ export function AppProvider({ children }) {
         incrementDay,
         decrementDay,
         resetDay,
+        resetDailyProgress,
         resetToSampleData,
         exportAllData,
         exportAllDataPdf
