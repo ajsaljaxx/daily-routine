@@ -33,9 +33,9 @@ export default function SleepView() {
   const daysLogged = activeRecords.length || 1;
   const avgMonthlyHours = (totalMonthlyHours / daysLogged).toFixed(1);
 
-  // Only ONE rating verdict: "You're doing well" or "You're not doing well, you want more rest"
+  // Single rating verdict: "You're doing well" or "You're not sleeping well, you want more rest"
   const isDoingWell = Number(avgMonthlyHours) >= Number(dailyTarget || 7.0);
-  const ratingVerdict = isDoingWell ? "You're doing well 🎉" : "You're not doing well, you want more rest ⚠️";
+  const ratingVerdict = isDoingWell ? "You're doing well 🎉" : "You're not sleeping well, you want more rest ⚠️";
   const ratingDetail = isDoingWell
     ? `Your ${monthName} sleep average is ${avgMonthlyHours}h / night, achieving your ${dailyTarget}h daily target.`
     : `Your ${monthName} sleep average is ${avgMonthlyHours}h / night (target: ${dailyTarget}h). Prioritize earlier bedtimes to give your body more rest.`;
@@ -403,7 +403,7 @@ export default function SleepView() {
                         background: isEntryGood ? 'var(--success-bg)' : 'rgba(245, 158, 11, 0.15)',
                         color: isEntryGood ? 'var(--success)' : '#D97706'
                       }}>
-                        {isEntryGood ? "Doing Well" : "Want More Rest"}
+                        {isEntryGood ? "Doing Well" : "Not Sleeping Well"}
                       </span>
                     </td>
                   </tr>

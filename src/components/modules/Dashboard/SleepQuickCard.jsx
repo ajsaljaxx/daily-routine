@@ -20,9 +20,9 @@ export function SleepQuickCard() {
   const totalMonthlyHours = activeRecords.reduce((sum, h) => sum + (Number(h.duration) || 7.0), 0);
   const avgMonthlyHours = (totalMonthlyHours / (activeRecords.length || 1)).toFixed(1);
 
-  // Single Rating: "You're doing well" or "You're not doing well, you want more rest"
+  // Single Rating: "You're doing well" or "You're not sleeping well, you want more rest"
   const isDoingWell = Number(avgMonthlyHours) >= 7.0;
-  const ratingText = isDoingWell ? "You're doing well 🎉" : "You're not doing well, you want more rest ⚠️";
+  const ratingText = isDoingWell ? "You're doing well 🎉" : "You're not sleeping well, you want more rest ⚠️";
 
   return (
     <div className="aura-card">
