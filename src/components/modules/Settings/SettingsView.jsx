@@ -240,26 +240,6 @@ export default function SettingsView() {
 
           <div className="form-row">
             <div className="form-group">
-              <label>Target Sleep Time</label>
-              <input
-                type="time"
-                value={targetSleepTime}
-                onChange={e => setTargetSleepTime(e.target.value)}
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Target Wake-up Time (Fajr)</label>
-              <input
-                type="time"
-                value={targetWakeTime}
-                onChange={e => setTargetWakeTime(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="form-row">
-            <div className="form-group">
               <label>Daily Sleep Target (Hours)</label>
               <input
                 type="number"
