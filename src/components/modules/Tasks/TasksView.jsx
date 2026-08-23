@@ -165,25 +165,25 @@ export default function TasksView() {
               {filteredTasks.map(task => {
                 const priority = task.priority || 'Medium';
 
-                // Entire Box Priority Color Fills: Urgent -> RED, High -> ORANGE, Others -> BLUE
+                // Bright Full-Box Priority Color Fills: Urgent -> RED, High -> ORANGE, Others -> BLUE
                 let boxStyle = {
-                  bg: 'linear-gradient(135deg, rgba(36, 87, 255, 0.12) 0%, rgba(59, 130, 246, 0.06) 100%)',
-                  border: '1px solid rgba(36, 87, 255, 0.35)',
+                  bg: 'rgba(36, 87, 255, 0.14)',
+                  border: '2px solid #2457FF',
                   badgeBg: '#2457FF',
                   badgeColor: '#FFFFFF'
                 };
 
                 if (priority === 'Urgent') {
                   boxStyle = {
-                    bg: 'linear-gradient(135deg, rgba(239, 68, 68, 0.16) 0%, rgba(220, 38, 38, 0.08) 100%)',
-                    border: '1px solid rgba(239, 68, 68, 0.45)',
+                    bg: 'rgba(239, 68, 68, 0.18)',
+                    border: '2px solid #EF4444',
                     badgeBg: '#EF4444',
                     badgeColor: '#FFFFFF'
                   };
                 } else if (priority === 'High') {
                   boxStyle = {
-                    bg: 'linear-gradient(135deg, rgba(245, 158, 11, 0.16) 0%, rgba(217, 119, 6, 0.08) 100%)',
-                    border: '1px solid rgba(245, 158, 11, 0.45)',
+                    bg: 'rgba(245, 158, 11, 0.18)',
+                    border: '2px solid #F59E0B',
                     badgeBg: '#F59E0B',
                     badgeColor: '#FFFFFF'
                   };
@@ -193,7 +193,7 @@ export default function TasksView() {
                   <div
                     key={task.id}
                     style={{
-                      background: task.completed ? 'var(--bg-secondary)' : boxStyle.bg,
+                      backgroundColor: task.completed ? 'var(--bg-secondary)' : boxStyle.bg,
                       borderRadius: 'var(--radius-md)',
                       border: task.completed ? '1px solid var(--border-light)' : boxStyle.border,
                       padding: '16px 20px',
@@ -201,7 +201,7 @@ export default function TasksView() {
                       alignItems: 'center',
                       justifyContent: 'space-between',
                       gap: '16px',
-                      boxShadow: 'var(--shadow-sm)',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
                       opacity: task.completed ? 0.65 : 1,
                       transition: 'all var(--transition-fast)'
                     }}

@@ -4,9 +4,7 @@ import { CalendarCheck, Check, Clock, AlertCircle, ArrowUpRight } from 'lucide-r
 
 export function UpcomingTasksCard() {
   const { tasks, toggleTask, setActivePage } = useApp();
-
-  const todayStr = new Date().toISOString().split('T')[0];
-  const todayTasks = tasks.filter(t => t.date === todayStr || !t.date).slice(0, 4);
+  const displayTasks = (tasks || []).slice(0, 5);
 
   return (
     <div className="aura-card">
@@ -27,15 +25,28 @@ export function UpcomingTasksCard() {
         </button>
       </div>
 
-      {todayTasks.length === 0 ? (
+      {displayTasks.length === 0 ? (
         <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', textAlign: 'center', padding: '16px 0' }}>
-          No tasks scheduled for today. Enjoy the free space! ✨
+          No tasks scheduled. Enjoy the free space! ✨
         </p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {todayTasks.map(task => {
-            const isUrgent = task.priority === 'Urgent';
-            const isHigh = task.priority === 'High';
+          {displayTasks.map(task => {
+            const priority = task.priority || 'Medium';
+
+            let boxBg = 'rgba(36, 87, 255, 0.14)';
+            let boxBorder = '2px solid #2457FF';
+            let badgeBg = '#2457FF';
+
+            if (priority === 'Urgent') {
+              boxBg = 'rgba(239, 68, 68, 0.18)';
+              boxBorder = '2px solid #EF4444';
+              badgeBg = '#EF4444';
+            } else if (priority === 'High') {
+              boxBg = 'rgba(245, 158, 11, 0.18)';
+              boxBorder = '2px solid #F59E0B';
+              badgeBg = '#F59E0B';
+            }
 
             return (
               <div
@@ -47,8 +58,8 @@ export function UpcomingTasksCard() {
                   gap: '12px',
                   padding: '10px 12px',
                   borderRadius: 'var(--radius-sm)',
-                  backgroundColor: task.completed ? 'var(--bg-secondary)' : 'var(--bg-surface-elevated)',
-                  border: `1px solid ${task.completed ? 'transparent' : 'var(--border-light)'}`,
+                  backgroundColor: task.completed ? 'var(--bg-secondary)' : boxBg,
+                  border: task.completed ? '1px solid var(--border-light)' : boxBorder,
                   cursor: 'pointer',
                   opacity: task.completed ? 0.6 : 1,
                   transition: 'all var(--transition-fast)'
