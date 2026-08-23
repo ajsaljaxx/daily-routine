@@ -1,7 +1,6 @@
 import React from 'react';
 import { useApp } from '../../../context/AppContext';
 import DashboardHero from './DashboardHero';
-import TodayProgressRings from './TodayProgressRings';
 import { PrayerQuickTracker, QuranQuickTracker } from './PrayerQuickTracker';
 import { UpcomingTasksCard, FinanceQuickCard } from './UpcomingTasksCard';
 import { SleepQuickCard } from './SleepQuickCard';
@@ -11,7 +10,7 @@ export default function DashboardView({ onOpenQuickAction }) {
 
   return (
     <div className="page-content">
-      {/* 1. TOP: Dynamic Dashboard Hero Section */}
+      {/* 1. Dynamic Hero Header */}
       <div style={{ marginBottom: '20px' }}>
         <DashboardHero
           onOpenReading={() => setActivePage('reading')}
@@ -19,22 +18,21 @@ export default function DashboardView({ onOpenQuickAction }) {
         />
       </div>
 
-      {/* 2. SECOND ROW: Today's Progress Dial & Swalah Prayer Tracker */}
-      <div className="grid-dashboard-top">
-        <TodayProgressRings />
+      {/* 2. Swalah Prayers Tracker */}
+      <div style={{ marginBottom: '24px' }}>
         <PrayerQuickTracker />
       </div>
 
-      {/* 3. THIRD ROW: Qur'an Tracker & Upcoming Priority Tasks */}
+      {/* 3. Daily Qur'an Reading & Sleep Recovery */}
       <div className="grid-dashboard-row">
         <QuranQuickTracker />
-        <UpcomingTasksCard />
+        <SleepQuickCard />
       </div>
 
-      {/* 4. FOURTH ROW: Finance Pulse & Sleep Duration */}
+      {/* 4. Upcoming Priority Tasks & Money Savings */}
       <div className="grid-dashboard-row" style={{ marginBottom: '24px' }}>
+        <UpcomingTasksCard />
         <FinanceQuickCard />
-        <SleepQuickCard />
       </div>
     </div>
   );

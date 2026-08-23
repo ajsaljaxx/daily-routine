@@ -206,24 +206,6 @@ export default function DashboardHero({ onOpenReading, onQuickLog }) {
               color: '#FFFFFF'
             }}
           >
-            <CheckCircle2 size={15} color="#34D399" />
-            <span>{completedHabits}/{totalHabits} Habits Done</span>
-          </div>
-
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '6px 14px',
-              borderRadius: 'var(--radius-md)',
-              background: 'rgba(0, 0, 0, 0.25)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              fontSize: '0.82rem',
-              fontWeight: 600,
-              color: '#FFFFFF'
-            }}
-          >
             <CalendarCheck size={15} color="#60A5FA" />
             <span>{completedTasks}/{todayTasks.length} Tasks Done</span>
           </div>
