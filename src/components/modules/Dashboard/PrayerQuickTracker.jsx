@@ -1,6 +1,7 @@
 import React from 'react';
 import { useApp } from '../../../context/AppContext';
 import { CheckCircle2, Circle, Flame, BookOpen } from 'lucide-react';
+import { JUZ_NAMES } from '../../../data/quranData';
 
 export function PrayerQuickTracker() {
   const { prayers, togglePrayer } = useApp();
@@ -159,10 +160,24 @@ export function PrayerQuickTracker() {
 
 export function QuranQuickTracker() {
   const { quran, updateQuranPages } = useApp();
+  const currentJuzNum = quran.currentJuz || 1;
+  const juzInfo = JUZ_NAMES[(currentJuzNum - 1) % 30] || JUZ_NAMES[0];
+  const pagesRead = quran.pagesReadToday || 0;
+
+  const milestones = [5, 10, 15, 20];
+
+  const handleMilestoneClick = (val) => {
+    if (pagesRead === val) {
+      updateQuranPages(-val);
+    } else {
+      updateQuranPages(val - pagesRead);
+    }
+  };
 
   return (
     <div className="aura-card" style={{ padding: '20px', background: 'linear-gradient(135deg, var(--bg-surface) 0%, var(--bg-secondary) 100%)' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div style={{
             width: '36px',
@@ -181,52 +196,103 @@ export function QuranQuickTracker() {
               Daily Qur'an Reading
             </h4>
             <span style={{ fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
-              Target: 1 Juz ({quran.targetPagesPerDay} Pages / Day)
+              Target: 1 Juz ({pagesRead}/20 Pages Today)
             </span>
           </div>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.8rem', fontWeight: 700, color: '#F4A340' }}>
           <Flame size={15} />
-          <span>{quran.streak}d streak</span>
+          <span>{quran.streak || 0}d streak</span>
         </div>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '12px', background: 'var(--bg-surface)', padding: '12px 14px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-light)' }}>
+      {/* Current Juz Banner with Starting Arabic Words */}
+      <div style={{
+        padding: '12px 14px',
+        borderRadius: 'var(--radius-md)',
+        background: 'var(--bg-surface)',
+        border: '1px solid var(--border-light)',
+        marginBottom: '14px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: '8px'
+      }}>
         <div>
-          <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', display: 'block' }}>Current Reading</span>
-          <span style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--primary-royal)' }}>
-            Juz {quran.currentJuz}
-          </span>
-          <span style={{ fontSize: '0.76rem', color: 'var(--text-secondary)', marginLeft: '6px' }}>
-            ({quran.currentSurah || 'Al-Hijr'})
+          <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', display: 'block' }}>Current Reading Goal</span>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--primary-royal)' }}>
+              Juz {currentJuzNum}
+            </span>
+            <span style={{ fontSize: '1.15rem', fontWeight: 800, color: '#10B981', fontFamily: 'serif' }}>
+              {juzInfo.arabic}
+            </span>
+            <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+              ({juzInfo.title})
+            </span>
+          </div>
+          <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+            Surah: {juzInfo.surah}
           </span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <button
-            onClick={() => updateQuranPages(-1)}
-            className="btn btn-secondary btn-icon"
-            style={{ width: '28px', height: '28px', borderRadius: '50%' }}
-          >
-            -
-          </button>
-          <div style={{ textAlign: 'center' }}>
-            <span style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-              {quran.pagesReadToday}
-            </span>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-              /{quran.targetPagesPerDay} p.
-            </span>
-          </div>
-          <button
-            onClick={() => updateQuranPages(1)}
-            className="btn btn-primary btn-icon"
-            style={{ width: '28px', height: '28px', borderRadius: '50%' }}
-          >
-            +
-          </button>
-        </div>
+        {pagesRead >= 20 && (
+          <span style={{
+            fontSize: '0.72rem',
+            fontWeight: 800,
+            padding: '4px 10px',
+            borderRadius: 'var(--radius-full)',
+            background: 'var(--success-bg)',
+            color: 'var(--success)',
+            border: '1px solid rgba(16, 185, 129, 0.3)'
+          }}>
+            1 Juz Complete ✓
+          </span>
+        )}
+      </div>
+
+      {/* 4 Milestone Buttons: 5, 10, 15, 20 Pages */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+        {milestones.map((val) => {
+          const isDone = pagesRead >= val;
+
+          return (
+            <button
+              key={val}
+              onClick={() => handleMilestoneClick(val)}
+              style={{
+                padding: '10px 4px',
+                borderRadius: 'var(--radius-md)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '2px',
+                background: isDone
+                  ? 'linear-gradient(135deg, #10B981 0%, #059669 100%)'
+                  : 'var(--bg-surface)',
+                color: isDone ? '#FFFFFF' : 'var(--text-primary)',
+                border: isDone
+                  ? '1px solid rgba(255, 255, 255, 0.2)'
+                  : '1px solid var(--border-light)',
+                boxShadow: isDone
+                  ? '0 4px 12px rgba(16, 185, 129, 0.25)'
+                  : 'none',
+                cursor: 'pointer',
+                transition: 'all 0.18s ease'
+              }}
+            >
+              <span style={{ fontSize: '0.95rem', fontWeight: 800 }}>
+                {val}
+              </span>
+              <span style={{ fontSize: '0.65rem', opacity: isDone ? 0.9 : 0.65 }}>
+                {isDone ? 'Pages ✓' : 'Pages'}
+              </span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
