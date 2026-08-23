@@ -7,11 +7,13 @@ import {
   Bell,
   Plus,
   BookOpen,
-  RotateCcw
+  RotateCcw,
+  Sparkles,
+  Bot
 } from 'lucide-react';
 
 export default function Header({ onOpenQuickAction }) {
-  const { userProfile, setUserProfile, notifications, setActivePage, resetDailyProgress } = useApp();
+  const { userProfile, setUserProfile, notifications, setActivePage, isAiChatOpen, toggleAiChat } = useApp();
   const [showNotifications, setShowNotifications] = useState(false);
 
   const { greeting } = getGreetingAndQuote();
@@ -54,6 +56,44 @@ export default function Header({ onOpenQuickAction }) {
         >
           <BookOpen size={16} />
           <span>Reading Hub</span>
+        </button>
+
+        {/* Upper Right Circular AURA AI Chatbot Button */}
+        <button
+          onClick={toggleAiChat}
+          style={{
+            width: '38px',
+            height: '38px',
+            borderRadius: '50%',
+            background: 'var(--grad-royal)',
+            color: '#FFFFFF',
+            border: '1.5px solid rgba(255, 255, 255, 0.4)',
+            boxShadow: isAiChatOpen ? '0 0 0 3px rgba(36, 87, 255, 0.35)' : '0 4px 14px rgba(36, 87, 255, 0.4)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            position: 'relative',
+            transition: 'transform 0.15s ease, box-shadow 0.15s ease'
+          }}
+          onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.08)'}
+          onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+          title="Open AURA AI Chatbot Assistant"
+          aria-label="AURA AI Assistant"
+        >
+          <Sparkles size={18} color="#FFFFFF" />
+          <span
+            style={{
+              position: 'absolute',
+              top: '2px',
+              right: '2px',
+              width: '8px',
+              height: '8px',
+              borderRadius: '50%',
+              backgroundColor: '#10B981',
+              border: '1.5px solid var(--bg-surface)'
+            }}
+          />
         </button>
 
         {/* Notification Bell Dropdown */}

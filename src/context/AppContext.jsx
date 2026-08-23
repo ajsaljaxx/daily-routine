@@ -97,6 +97,9 @@ export function AppProvider({ children }) {
 
   const [isAiTyping, setIsAiTyping] = useState(false);
   const [aiMode, setAiMode] = useState('universal'); // 'universal' | 'coding' | 'writing' | 'spiritual' | 'productivity'
+  const [isAiChatOpen, setIsAiChatOpen] = useState(false);
+
+  const toggleAiChat = () => setIsAiChatOpen(prev => !prev);
 
   const [streakStartDate, setStreakStartDate] = useState(() => 
     loadStorage(STORAGE_KEYS.STREAK_START_DATE, getLocalDateString())
@@ -1109,6 +1112,9 @@ export function AppProvider({ children }) {
         aiMode,
         setAiMode,
         isAiTyping,
+        isAiChatOpen,
+        setIsAiChatOpen,
+        toggleAiChat,
         activePage,
         setActivePage,
         toasts,

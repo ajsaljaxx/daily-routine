@@ -3,8 +3,7 @@ import { useApp } from '../../context/AppContext';
 import { Sparkles, X, Send, Trash2, Bot, RefreshCw } from 'lucide-react';
 
 export default function FloatingAiChatbot() {
-  const { aiChatMessages, sendAiMessage, isAiTyping, clearAiChat } = useApp();
-  const [isOpen, setIsOpen] = useState(false);
+  const { aiChatMessages, sendAiMessage, isAiTyping, clearAiChat, isAiChatOpen, setIsAiChatOpen } = useApp();
   const [inputMessage, setInputMessage] = useState('');
   const messagesEndRef = useRef(null);
 
@@ -13,10 +12,10 @@ export default function FloatingAiChatbot() {
   };
 
   useEffect(() => {
-    if (isOpen) {
+    if (isAiChatOpen) {
       scrollToBottom();
     }
-  }, [aiChatMessages, isAiTyping, isOpen]);
+  }, [aiChatMessages, isAiTyping, isAiChatOpen]);
 
   const handleSend = (e) => {
     e.preventDefault();
@@ -26,62 +25,29 @@ export default function FloatingAiChatbot() {
     sendAiMessage(text);
   };
 
-  return (
-    <>
-      {/* Floating Toggle Button */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        style={{
-          position: 'fixed',
-          bottom: '24px',
-          right: '24px',
-          zIndex: 9999,
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          padding: '12px 18px',
-          borderRadius: 'var(--radius-full)',
-          background: 'var(--grad-royal)',
-          color: '#FFFFFF',
-          border: '1px solid rgba(255, 255, 255, 0.3)',
-          boxShadow: '0 8px 28px rgba(36, 87, 255, 0.45)',
-          fontWeight: 700,
-          fontSize: '0.9rem',
-          cursor: 'pointer',
-          transition: 'transform 0.2s ease'
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'scale(1.05)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'scale(1)';
-        }}
-      >
-        <Sparkles size={18} />
-        <span>AURA AI</span>
-      </button>
+  if (!isAiChatOpen) return null;
 
-      {/* Floating Chat Window Modal */}
-      {isOpen && (
-        <div
-          style={{
-            position: 'fixed',
-            bottom: '84px',
-            right: '24px',
-            width: '380px',
-            maxWidth: 'calc(100vw - 32px)',
-            height: '520px',
-            maxHeight: 'calc(100vh - 120px)',
-            zIndex: 9999,
-            backgroundColor: 'var(--bg-surface)',
-            border: '1px solid var(--border-medium)',
-            borderRadius: '20px',
-            boxShadow: '0 16px 40px rgba(0, 0, 0, 0.3)',
-            display: 'flex',
-            flexDirection: 'column',
-            overflow: 'hidden'
-          }}
-        >
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        top: '68px',
+        right: '24px',
+        width: '380px',
+        maxWidth: 'calc(100vw - 32px)',
+        height: '520px',
+        maxHeight: 'calc(100vh - 90px)',
+        zIndex: 9999,
+        backgroundColor: 'var(--bg-surface)',
+        border: '1px solid var(--border-medium)',
+        borderRadius: '20px',
+        boxShadow: '0 16px 40px rgba(0, 0, 0, 0.25)',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+        animation: 'fadeIn 0.2s ease-out'
+      }}
+    >
           {/* Header */}
           <div
             style={{
@@ -129,7 +95,7 @@ export default function FloatingAiChatbot() {
                 <Trash2 size={16} />
               </button>
               <button
-                onClick={() => setIsOpen(false)}
+                onClick={() => setIsAiChatOpen(false)}
                 style={{
                   background: 'transparent',
                   border: 'none',
@@ -257,7 +223,5 @@ export default function FloatingAiChatbot() {
             </button>
           </form>
         </div>
-      )}
-    </>
   );
 }
