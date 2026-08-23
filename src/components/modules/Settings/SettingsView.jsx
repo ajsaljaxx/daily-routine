@@ -198,7 +198,16 @@ export default function SettingsView() {
                 <button
                   key={t.id}
                   type="button"
-                  onClick={() => setTheme(t.id)}
+                  onClick={() => {
+                    setTheme(t.id);
+                    setUserProfile(prev => ({ ...prev, theme: t.id }));
+                    if (t.id === 'system') {
+                      const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                      document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+                    } else {
+                      document.documentElement.setAttribute('data-theme', t.id);
+                    }
+                  }}
                   style={{
                     display: 'flex',
                     flexDirection: 'column',
@@ -211,7 +220,8 @@ export default function SettingsView() {
                     border: `2px solid ${isSelected ? 'var(--primary-royal)' : 'var(--border-light)'}`,
                     color: isSelected ? 'var(--primary-royal)' : 'var(--text-primary)',
                     fontWeight: isSelected ? 700 : 500,
-                    cursor: 'pointer'
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease'
                   }}
                 >
                   <Icon size={22} />
