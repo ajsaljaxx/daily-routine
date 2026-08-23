@@ -347,15 +347,28 @@ export function AppProvider({ children }) {
     showToast(`Task "${newTask.title}" added!`, 'success');
   };
 
-  const toggleTask = (taskId) => {
+  const toggleTask = (taskId, forceState = null) => {
     setTasks(prev => prev.map(t => {
       if (t.id === taskId) {
-        const nextState = !t.completed;
-        if (nextState) {
-          triggerCelebration();
-          showToast(`Task completed: ${t.title} ✓`, 'success');
+        // If task is completed and locked for today, prevent modifications
+        if (t.completed && (t.locked || t.isLocked)) {
+          showToast('This task is completed and locked for today.', 'info');
+          return t;
         }
-        return { ...t, completed: nextState };
+
+        const nextCompleted = forceState !== null ? forceState : !t.completed;
+        const nextLocked = nextCompleted ? true : false;
+
+        if (nextCompleted) {
+          triggerCelebration();
+          showToast(`Task completed and locked for today: ${t.title} ✓`, 'success');
+        }
+
+        return {
+          ...t,
+          completed: nextCompleted,
+          locked: nextLocked
+        };
       }
       return t;
     }));

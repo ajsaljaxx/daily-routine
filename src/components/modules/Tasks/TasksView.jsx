@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useApp } from '../../../context/AppContext';
 import TaskCalendar from './TaskCalendar';
 import TaskModal from './TaskModal';
+import Modal from '../../common/Modal';
 import {
   Plus,
   Search,
@@ -12,11 +13,13 @@ import {
   Calendar,
   ListFilter,
   Flame,
-  AlertTriangle
+  AlertTriangle,
+  Lock,
+  CheckCircle2
 } from 'lucide-react';
 
 export default function TasksView() {
-  const { tasks, addTask, toggleTask, deleteTask, editTask } = useApp();
+  const { tasks, addTask, toggleTask, deleteTask, editTask, showToast } = useApp();
 
   const [activeTab, setActiveTab] = useState('list'); // 'list' or 'calendar'
   const [filterStatus, setFilterStatus] = useState('all'); // 'all', 'pending', 'completed', 'urgent'
@@ -24,6 +27,7 @@ export default function TasksView() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [calendarTargetDate, setCalendarTargetDate] = useState(null);
+  const [confirmingTask, setConfirmingTask] = useState(null);
 
   const handleOpenAdd = (date = null) => {
     setEditingTask(null);
@@ -209,7 +213,13 @@ export default function TasksView() {
                     {/* Checkbox & Task Info */}
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px', flex: 1, minWidth: 0 }}>
                       <button
-                        onClick={() => toggleTask(task.id)}
+                        onClick={() => {
+                          if (task.completed) {
+                            showToast('This task is completed and locked for today.', 'info');
+                          } else {
+                            setConfirmingTask(task);
+                          }
+                        }}
                         style={{
                           width: '24px',
                           height: '24px',
@@ -221,8 +231,9 @@ export default function TasksView() {
                           justifyContent: 'center',
                           flexShrink: 0,
                           marginTop: '2px',
-                          cursor: 'pointer'
+                          cursor: task.completed ? 'not-allowed' : 'pointer'
                         }}
+                        title={task.completed ? 'Completed & Locked for Today' : 'Click to complete task'}
                       >
                         {task.completed && <Check size={14} strokeWidth={3} color="#FFFFFF" />}
                       </button>
@@ -271,9 +282,19 @@ export default function TasksView() {
                             </span>
                           )}
 
-                          {task.recurring && task.recurring !== 'None' && (
-                            <span style={{ fontSize: '0.72rem', color: 'var(--primary-royal)', fontWeight: 600 }}>
-                              ↻ {task.recurring}
+                          {task.completed && (
+                            <span style={{
+                              fontSize: '0.72rem',
+                              fontWeight: 700,
+                              padding: '2px 8px',
+                              borderRadius: 'var(--radius-full)',
+                              background: 'var(--success-bg)',
+                              color: 'var(--success)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px'
+                            }}>
+                              <Lock size={11} /> Locked Today
                             </span>
                           )}
                         </div>
@@ -293,14 +314,16 @@ export default function TasksView() {
                         {priority}
                       </span>
 
-                      <button
-                        onClick={() => handleOpenEdit(task)}
-                        className="btn-icon btn-ghost"
-                        style={{ width: '32px', height: '32px' }}
-                        title="Edit task"
-                      >
-                        <Edit2 size={16} />
-                      </button>
+                      {!task.completed && (
+                        <button
+                          onClick={() => handleOpenEdit(task)}
+                          className="btn-icon btn-ghost"
+                          style={{ width: '32px', height: '32px' }}
+                          title="Edit task"
+                        >
+                          <Edit2 size={16} />
+                        </button>
+                      )}
 
                       <button
                         onClick={() => deleteTask(task.id)}
@@ -318,6 +341,64 @@ export default function TasksView() {
           )}
         </div>
       )}
+
+      {/* Task Completion Confirmation Modal */}
+      <Modal
+        isOpen={!!confirmingTask}
+        onClose={() => setConfirmingTask(null)}
+        title="Confirm Task Completion"
+        maxWidth="440px"
+      >
+        <div style={{ textAlign: 'center', padding: '10px 0' }}>
+          <div style={{
+            width: '54px',
+            height: '54px',
+            borderRadius: '50%',
+            background: 'var(--success-bg)',
+            color: 'var(--success)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 16px',
+            border: '2px solid rgba(16, 185, 129, 0.3)'
+          }}>
+            <CheckCircle2 size={32} />
+          </div>
+
+          <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '8px' }}>
+            Mark Task as Completed?
+          </h3>
+
+          <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '20px', lineHeight: 1.5 }}>
+            Are you sure you want to complete <strong>"{confirmingTask?.title}"</strong>?
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginTop: '8px', padding: '8px 12px', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-sm)' }}>
+              🔒 Once confirmed, this task will be completed and locked for today.
+            </span>
+          </p>
+
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <button
+              className="btn btn-secondary"
+              onClick={() => setConfirmingTask(null)}
+              style={{ flex: 1 }}
+            >
+              Cancel
+            </button>
+            <button
+              className="btn btn-primary"
+              onClick={() => {
+                if (confirmingTask) {
+                  toggleTask(confirmingTask.id, true);
+                  setConfirmingTask(null);
+                }
+              }}
+              style={{ flex: 1, backgroundColor: 'var(--success)', borderColor: 'var(--success)' }}
+            >
+              Confirm & Lock Task ✓
+            </button>
+          </div>
+        </div>
+      </Modal>
 
       {/* Task Modal */}
       <TaskModal

@@ -51,7 +51,15 @@ export function UpcomingTasksCard() {
             return (
               <div
                 key={task.id}
-                onClick={() => toggleTask(task.id)}
+                onClick={() => {
+                  if (task.completed) {
+                    showToast('This task is completed and locked for today.', 'info');
+                  } else {
+                    if (window.confirm(`Mark "${task.title}" as completed?\nOnce confirmed, this task will be locked for the rest of today.`)) {
+                      toggleTask(task.id, true);
+                    }
+                  }
+                }}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -60,7 +68,7 @@ export function UpcomingTasksCard() {
                   borderRadius: 'var(--radius-sm)',
                   backgroundColor: task.completed ? 'var(--bg-secondary)' : boxBg,
                   border: task.completed ? '1px solid var(--border-light)' : boxBorder,
-                  cursor: 'pointer',
+                  cursor: task.completed ? 'not-allowed' : 'pointer',
                   opacity: task.completed ? 0.6 : 1,
                   transition: 'all var(--transition-fast)'
                 }}
