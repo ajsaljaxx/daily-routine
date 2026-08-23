@@ -261,14 +261,18 @@ export default function TaskCalendar({ tasks, toggleTask, onAddTaskForDate, onEd
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {selectedDateTasks.map(t => {
                   const p = t.priority || 'Medium';
-                  let pBg = 'rgba(36, 87, 255, 0.14)';
-                  let pColor = '#2457FF';
+                  let boxBg = 'linear-gradient(135deg, rgba(36, 87, 255, 0.12) 0%, rgba(59, 130, 246, 0.06) 100%)';
+                  let boxBorder = '1px solid rgba(36, 87, 255, 0.35)';
+                  let badgeBg = '#2457FF';
+
                   if (p === 'Urgent') {
-                    pBg = 'rgba(239, 68, 68, 0.15)';
-                    pColor = '#EF4444';
+                    boxBg = 'linear-gradient(135deg, rgba(239, 68, 68, 0.16) 0%, rgba(220, 38, 38, 0.08) 100%)';
+                    boxBorder = '1px solid rgba(239, 68, 68, 0.45)';
+                    badgeBg = '#EF4444';
                   } else if (p === 'High') {
-                    pBg = 'rgba(245, 158, 11, 0.15)';
-                    pColor = '#F59E0B';
+                    boxBg = 'linear-gradient(135deg, rgba(245, 158, 11, 0.16) 0%, rgba(217, 119, 6, 0.08) 100%)';
+                    boxBorder = '1px solid rgba(245, 158, 11, 0.45)';
+                    badgeBg = '#F59E0B';
                   }
 
                   return (
@@ -280,9 +284,8 @@ export default function TaskCalendar({ tasks, toggleTask, onAddTaskForDate, onEd
                         justifyContent: 'space-between',
                         padding: '10px 14px',
                         borderRadius: 'var(--radius-sm)',
-                        background: 'var(--bg-secondary)',
-                        border: '1px solid var(--border-light)',
-                        borderLeft: `4px solid ${pColor}`
+                        background: t.completed ? 'var(--bg-secondary)' : boxBg,
+                        border: t.completed ? '1px solid var(--border-light)' : boxBorder
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -314,11 +317,11 @@ export default function TaskCalendar({ tasks, toggleTask, onAddTaskForDate, onEd
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '2px', fontSize: '0.74rem', color: 'var(--text-muted)' }}>
                             <span>{t.time}</span>
                             <span style={{
-                              fontWeight: 700,
-                              padding: '1px 6px',
+                              fontWeight: 800,
+                              padding: '2px 8px',
                               borderRadius: 'var(--radius-full)',
-                              background: pBg,
-                              color: pColor
+                              background: t.completed ? 'var(--bg-surface)' : badgeBg,
+                              color: t.completed ? 'var(--text-muted)' : '#FFFFFF'
                             }}>
                               {p}
                             </span>

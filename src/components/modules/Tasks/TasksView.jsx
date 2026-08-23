@@ -165,29 +165,37 @@ export default function TasksView() {
               {filteredTasks.map(task => {
                 const priority = task.priority || 'Medium';
 
-                // Priority Color Coding: Urgent -> RED, High -> ORANGE, Others -> BLUE
-                let pBg = 'rgba(36, 87, 255, 0.14)';
-                let pColor = '#2457FF';
-                let pBorderLeft = '5px solid #2457FF';
+                // Entire Box Priority Color Fills: Urgent -> RED, High -> ORANGE, Others -> BLUE
+                let boxStyle = {
+                  bg: 'linear-gradient(135deg, rgba(36, 87, 255, 0.12) 0%, rgba(59, 130, 246, 0.06) 100%)',
+                  border: '1px solid rgba(36, 87, 255, 0.35)',
+                  badgeBg: '#2457FF',
+                  badgeColor: '#FFFFFF'
+                };
 
                 if (priority === 'Urgent') {
-                  pBg = 'rgba(239, 68, 68, 0.15)';
-                  pColor = '#EF4444';
-                  pBorderLeft = '5px solid #EF4444';
+                  boxStyle = {
+                    bg: 'linear-gradient(135deg, rgba(239, 68, 68, 0.16) 0%, rgba(220, 38, 38, 0.08) 100%)',
+                    border: '1px solid rgba(239, 68, 68, 0.45)',
+                    badgeBg: '#EF4444',
+                    badgeColor: '#FFFFFF'
+                  };
                 } else if (priority === 'High') {
-                  pBg = 'rgba(245, 158, 11, 0.15)';
-                  pColor = '#F59E0B';
-                  pBorderLeft = '5px solid #F59E0B';
+                  boxStyle = {
+                    bg: 'linear-gradient(135deg, rgba(245, 158, 11, 0.16) 0%, rgba(217, 119, 6, 0.08) 100%)',
+                    border: '1px solid rgba(245, 158, 11, 0.45)',
+                    badgeBg: '#F59E0B',
+                    badgeColor: '#FFFFFF'
+                  };
                 }
 
                 return (
                   <div
                     key={task.id}
                     style={{
-                      backgroundColor: 'var(--bg-surface)',
+                      background: task.completed ? 'var(--bg-secondary)' : boxStyle.bg,
                       borderRadius: 'var(--radius-md)',
-                      border: '1px solid var(--border-subtle)',
-                      borderLeft: task.completed ? '5px solid var(--border-medium)' : pBorderLeft,
+                      border: task.completed ? '1px solid var(--border-light)' : boxStyle.border,
                       padding: '16px 20px',
                       display: 'flex',
                       alignItems: 'center',
@@ -255,8 +263,9 @@ export default function TasksView() {
                               fontWeight: 600,
                               padding: '2px 8px',
                               borderRadius: 'var(--radius-full)',
-                              background: 'var(--bg-secondary)',
-                              color: 'var(--text-secondary)'
+                              background: 'var(--bg-surface)',
+                              color: 'var(--text-secondary)',
+                              border: '1px solid var(--border-light)'
                             }}>
                               {task.category}
                             </span>
@@ -278,8 +287,8 @@ export default function TasksView() {
                         fontWeight: 800,
                         padding: '4px 12px',
                         borderRadius: 'var(--radius-full)',
-                        backgroundColor: pBg,
-                        color: pColor
+                        backgroundColor: task.completed ? 'var(--bg-surface)' : boxStyle.badgeBg,
+                        color: task.completed ? 'var(--text-muted)' : boxStyle.badgeColor
                       }}>
                         {priority}
                       </span>
