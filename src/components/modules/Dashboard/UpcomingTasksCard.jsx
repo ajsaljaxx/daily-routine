@@ -118,13 +118,13 @@ export function UpcomingTasksCard() {
                 {/* Priority Chip */}
                 <span style={{
                   fontSize: '0.68rem',
-                  fontWeight: 700,
-                  padding: '2px 7px',
+                  fontWeight: 800,
+                  padding: '3px 8px',
                   borderRadius: 'var(--radius-full)',
-                  backgroundColor: isUrgent ? 'var(--danger-bg)' : isHigh ? 'var(--warning-bg)' : 'var(--bg-secondary)',
-                  color: isUrgent ? 'var(--danger)' : isHigh ? 'var(--warning)' : 'var(--text-muted)'
+                  backgroundColor: task.completed ? 'var(--bg-surface)' : badgeBg,
+                  color: task.completed ? 'var(--text-muted)' : '#FFFFFF'
                 }}>
-                  {task.priority}
+                  {priority}
                 </span>
               </div>
             );

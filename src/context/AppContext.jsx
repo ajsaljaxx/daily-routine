@@ -9,6 +9,9 @@ import {
   INITIAL_SLEEP_DATA,
   INITIAL_MEALS,
   INITIAL_BMI_DATA,
+  INITIAL_FINANCE_DATA,
+  INITIAL_BOOKS,
+  INITIAL_REFLECTIONS
 } from '../data/initialData';
 import { generateAiResponse } from '../services/aiService';
 import { JUZ_NAMES } from '../data/quranData';
