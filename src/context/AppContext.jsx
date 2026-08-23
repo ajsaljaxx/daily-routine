@@ -724,12 +724,6 @@ export function AppProvider({ children }) {
       }
     }
 
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-      showToast('Please allow popup permissions to generate PDF report', 'warning');
-      return;
-    }
-
     // 1. Swalah Prayers HTML
     let swalahHtml = '';
     if (includeSwalah) {
@@ -983,9 +977,32 @@ export function AppProvider({ children }) {
       </html>
     `;
 
-    printWindow.document.write(htmlContent);
-    printWindow.document.close();
-    showToast('Exporting PDF backup report... 📄', 'success');
+    // Remove any previous print frame if exists
+    const existingFrame = document.getElementById('aura-print-iframe');
+    if (existingFrame) existingFrame.remove();
+
+    // Create a hidden print iframe (bypasses browser popup blockers completely!)
+    const printFrame = document.createElement('iframe');
+    printFrame.id = 'aura-print-iframe';
+    printFrame.style.position = 'fixed';
+    printFrame.style.right = '0';
+    printFrame.style.bottom = '0';
+    printFrame.style.width = '0';
+    printFrame.style.height = '0';
+    printFrame.style.border = '0';
+    
+    document.body.appendChild(printFrame);
+
+    const doc = printFrame.contentDocument || printFrame.contentWindow.document;
+    doc.open();
+    doc.write(htmlContent);
+    doc.close();
+
+    // Trigger iframe print
+    setTimeout(() => {
+      printFrame.contentWindow.focus();
+      printFrame.contentWindow.print();
+    }, 350);
   };
 
   // Export JSON Backup
