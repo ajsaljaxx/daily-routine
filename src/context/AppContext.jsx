@@ -168,13 +168,9 @@ export function AppProvider({ children }) {
     }
   }, [userProfile?.theme]);
 
-  // Toast Notification Helper
+  // Toast Notification Helper (Disabled per user request: "delete the notifications when i did something")
   const showToast = (message, type = 'info') => {
-    const id = Date.now().toString() + Math.random();
-    setToasts(prev => [...prev, { id, message, type }]);
-    setTimeout(() => {
-      setToasts(prev => prev.filter(t => t.id !== id));
-    }, 3800);
+    return;
   };
 
   const triggerCelebration = () => {
