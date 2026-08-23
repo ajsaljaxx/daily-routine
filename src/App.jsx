@@ -6,6 +6,7 @@ import MobileNav from './components/layout/MobileNav';
 import QuickActionModal from './components/layout/QuickActionModal';
 import ToastContainer from './components/common/ToastContainer';
 import PwaInstallPrompt from './components/common/PwaInstallPrompt';
+import FloatingAiChatbot from './components/common/FloatingAiChatbot';
 
 // Active Module Views
 import DashboardView from './components/modules/Dashboard/DashboardView';
@@ -73,6 +74,9 @@ export default function App() {
 
       {/* PWA Install App Shortcut Prompt */}
       <PwaInstallPrompt />
+
+      {/* Floating AI Chatbot Widget */}
+      <FloatingAiChatbot />
 
       {/* Global Toast Notification System */}
       <ToastContainer />
