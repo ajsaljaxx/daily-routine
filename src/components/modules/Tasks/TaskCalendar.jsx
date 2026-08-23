@@ -194,25 +194,38 @@ export default function TaskCalendar({ tasks, toggleTask, onAddTaskForDate, onEd
 
                   {/* Task preview dots */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '4px' }}>
-                    {dayTasks.slice(0, 2).map(t => (
-                      <div
-                        key={t.id}
-                        style={{
-                          fontSize: '0.66rem',
-                          fontWeight: 500,
-                          padding: '1px 4px',
-                          borderRadius: '3px',
-                          backgroundColor: t.completed ? 'var(--bg-surface)' : 'rgba(124, 92, 252, 0.15)',
-                          color: t.completed ? 'var(--text-muted)' : 'var(--primary-deep)',
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          textDecoration: t.completed ? 'line-through' : 'none'
-                        }}
-                      >
-                        {t.title}
-                      </div>
-                    ))}
+                    {dayTasks.slice(0, 2).map(t => {
+                      const p = t.priority || 'Medium';
+                      let pBg = 'rgba(36, 87, 255, 0.15)';
+                      let pColor = '#2457FF';
+                      if (p === 'Urgent') {
+                        pBg = 'rgba(239, 68, 68, 0.18)';
+                        pColor = '#EF4444';
+                      } else if (p === 'High') {
+                        pBg = 'rgba(245, 158, 11, 0.18)';
+                        pColor = '#F59E0B';
+                      }
+
+                      return (
+                        <div
+                          key={t.id}
+                          style={{
+                            fontSize: '0.66rem',
+                            fontWeight: 700,
+                            padding: '1px 5px',
+                            borderRadius: '3px',
+                            backgroundColor: t.completed ? 'var(--bg-surface)' : pBg,
+                            color: t.completed ? 'var(--text-muted)' : pColor,
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            textDecoration: t.completed ? 'line-through' : 'none'
+                          }}
+                        >
+                          {t.title}
+                        </div>
+                      );
+                    })}
                     {dayTasks.length > 2 && (
                       <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)', fontWeight: 600 }}>
                         +{dayTasks.length - 2} more
@@ -246,61 +259,83 @@ export default function TaskCalendar({ tasks, toggleTask, onAddTaskForDate, onEd
               </p>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {selectedDateTasks.map(t => (
-                  <div
-                    key={t.id}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '10px 14px',
-                      borderRadius: 'var(--radius-sm)',
-                      background: 'var(--bg-secondary)',
-                      border: '1px solid var(--border-light)'
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <button
-                        onClick={() => toggleTask(t.id)}
-                        style={{
-                          width: '20px',
-                          height: '20px',
-                          borderRadius: '6px',
-                          border: `2px solid ${t.completed ? 'var(--success)' : 'var(--border-medium)'}`,
-                          backgroundColor: t.completed ? 'var(--success)' : 'transparent',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        {t.completed && <Check size={12} strokeWidth={3} color="#FFFFFF" />}
-                      </button>
-                      <div>
-                        <span style={{
-                          fontSize: '0.9rem',
-                          fontWeight: 600,
-                          color: 'var(--text-primary)',
-                          textDecoration: t.completed ? 'line-through' : 'none'
-                        }}>
-                          {t.title}
-                        </span>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '2px', fontSize: '0.74rem', color: 'var(--text-muted)' }}>
-                          <span>{t.time}</span>
-                          <span>• {t.priority}</span>
+                {selectedDateTasks.map(t => {
+                  const p = t.priority || 'Medium';
+                  let pBg = 'rgba(36, 87, 255, 0.14)';
+                  let pColor = '#2457FF';
+                  if (p === 'Urgent') {
+                    pBg = 'rgba(239, 68, 68, 0.15)';
+                    pColor = '#EF4444';
+                  } else if (p === 'High') {
+                    pBg = 'rgba(245, 158, 11, 0.15)';
+                    pColor = '#F59E0B';
+                  }
+
+                  return (
+                    <div
+                      key={t.id}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '10px 14px',
+                        borderRadius: 'var(--radius-sm)',
+                        background: 'var(--bg-secondary)',
+                        border: '1px solid var(--border-light)',
+                        borderLeft: `4px solid ${pColor}`
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <button
+                          onClick={() => toggleTask(t.id)}
+                          style={{
+                            width: '20px',
+                            height: '20px',
+                            borderRadius: '6px',
+                            border: `2px solid ${t.completed ? 'var(--success)' : 'var(--border-medium)'}`,
+                            backgroundColor: t.completed ? 'var(--success)' : 'transparent',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          {t.completed && <Check size={12} strokeWidth={3} color="#FFFFFF" />}
+                        </button>
+                        <div>
+                          <span style={{
+                            fontSize: '0.9rem',
+                            fontWeight: 600,
+                            color: 'var(--text-primary)',
+                            textDecoration: t.completed ? 'line-through' : 'none'
+                          }}>
+                            {t.title}
+                          </span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '2px', fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+                            <span>{t.time}</span>
+                            <span style={{
+                              fontWeight: 700,
+                              padding: '1px 6px',
+                              borderRadius: 'var(--radius-full)',
+                              background: pBg,
+                              color: pColor
+                            }}>
+                              {p}
+                            </span>
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    <button
-                      onClick={() => onEditTask(t)}
-                      className="btn-ghost btn-sm"
-                      style={{ fontSize: '0.78rem' }}
-                    >
-                      Edit
-                    </button>
-                  </div>
-                ))}
+                      <button
+                        onClick={() => onEditTask(t)}
+                        className="btn-ghost btn-sm"
+                        style={{ fontSize: '0.78rem' }}
+                      >
+                        Edit
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>

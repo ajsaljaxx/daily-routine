@@ -146,33 +146,7 @@ export default function TasksView() {
       ) : (
         /* 2. TASK LIST VIEW */
         <div>
-          {/* Status Filter Badges */}
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '18px', overflowX: 'auto' }}>
-            {[
-              { id: 'all', label: `All Tasks (${tasks.length})` },
-              { id: 'pending', label: `Pending (${pendingCount})` },
-              { id: 'urgent', label: `High & Urgent 🔥` },
-              { id: 'completed', label: `Completed (${completedCount})` }
-            ].map(f => (
-              <button
-                key={f.id}
-                onClick={() => setFilterStatus(f.id)}
-                style={{
-                  padding: '6px 14px',
-                  borderRadius: 'var(--radius-full)',
-                  fontSize: '0.82rem',
-                  fontWeight: filterStatus === f.id ? 700 : 500,
-                  backgroundColor: filterStatus === f.id ? 'var(--bg-tertiary)' : 'var(--bg-surface)',
-                  color: filterStatus === f.id ? 'var(--primary-royal)' : 'var(--text-secondary)',
-                  border: `1px solid ${filterStatus === f.id ? 'var(--primary-royal)' : 'var(--border-light)'}`
-                }}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Tasks List */}
+          {/* Unified Tasks List */}
           {filteredTasks.length === 0 ? (
             <div className="aura-card" style={{ textAlign: 'center', padding: '48px 24px' }}>
               <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '6px' }}>
@@ -189,8 +163,22 @@ export default function TasksView() {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {filteredTasks.map(task => {
-                const isUrgent = task.priority === 'Urgent';
-                const isHigh = task.priority === 'High';
+                const priority = task.priority || 'Medium';
+
+                // Priority Color Coding: Urgent -> RED, High -> ORANGE, Others -> BLUE
+                let pBg = 'rgba(36, 87, 255, 0.14)';
+                let pColor = '#2457FF';
+                let pBorderLeft = '5px solid #2457FF';
+
+                if (priority === 'Urgent') {
+                  pBg = 'rgba(239, 68, 68, 0.15)';
+                  pColor = '#EF4444';
+                  pBorderLeft = '5px solid #EF4444';
+                } else if (priority === 'High') {
+                  pBg = 'rgba(245, 158, 11, 0.15)';
+                  pColor = '#F59E0B';
+                  pBorderLeft = '5px solid #F59E0B';
+                }
 
                 return (
                   <div
@@ -198,7 +186,8 @@ export default function TasksView() {
                     style={{
                       backgroundColor: 'var(--bg-surface)',
                       borderRadius: 'var(--radius-md)',
-                      border: `1px solid ${task.completed ? 'var(--border-light)' : isUrgent ? 'rgba(231, 111, 114, 0.4)' : 'var(--border-subtle)'}`,
+                      border: '1px solid var(--border-subtle)',
+                      borderLeft: task.completed ? '5px solid var(--border-medium)' : pBorderLeft,
                       padding: '16px 20px',
                       display: 'flex',
                       alignItems: 'center',
@@ -286,13 +275,13 @@ export default function TasksView() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                       <span style={{
                         fontSize: '0.74rem',
-                        fontWeight: 700,
-                        padding: '4px 10px',
+                        fontWeight: 800,
+                        padding: '4px 12px',
                         borderRadius: 'var(--radius-full)',
-                        backgroundColor: isUrgent ? 'var(--danger-bg)' : isHigh ? 'var(--warning-bg)' : 'var(--bg-secondary)',
-                        color: isUrgent ? 'var(--danger)' : isHigh ? 'var(--warning)' : 'var(--text-muted)'
+                        backgroundColor: pBg,
+                        color: pColor
                       }}>
-                        {task.priority}
+                        {priority}
                       </span>
 
                       <button
