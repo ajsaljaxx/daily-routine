@@ -165,11 +165,17 @@ async function callFreeUniversalAi(messagesHistory, systemPrompt) {
 }
 
 /**
- * Calls Google AI Studio Gemini 1.5 Flash API with Multi-turn history
+ * Calls Google AI Studio Gemini API with multi-model fallback
  */
 async function callGeminiApi(apiKey, messagesHistory, systemPrompt) {
   const cleanKey = apiKey.trim();
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${cleanKey}`;
+  const modelsToTry = [
+    'gemini-2.0-flash',
+    'gemini-1.5-flash-latest',
+    'gemini-1.5-flash',
+    'gemini-1.5-pro',
+    'gemini-pro'
+  ];
 
   // Build clean conversational turns
   const contents = messagesHistory.slice(-10).map(msg => ({
@@ -184,28 +190,35 @@ async function callGeminiApi(apiKey, messagesHistory, systemPrompt) {
     contents,
     generationConfig: {
       temperature: 0.85,
-      topK: 40,
-      topP: 0.95,
       maxOutputTokens: 2048
     }
   };
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  });
+  let lastError = null;
 
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    const errMsg = errorData.error?.message || `Google AI Studio returned HTTP ${response.status}`;
-    throw new Error(errMsg);
+  for (const modelName of modelsToTry) {
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${cleanKey}`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (text) return { text, modelName };
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        lastError = errorData.error?.message || `Status ${response.status}`;
+      }
+    } catch (err) {
+      lastError = err.message;
+    }
   }
 
-  const data = await response.json();
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!text) throw new Error('Empty response received from Google AI Studio');
-  return text;
+  throw new Error(lastError || 'Gemini API call failed');
 }
 
 /**
@@ -256,15 +269,15 @@ export async function generateAiResponse(userMessage, context, chatHistory = [],
   const systemPrompt = buildFriendSystemPrompt(context, friendVibe);
   const fullHistory = [...chatHistory, { sender: 'user', text: userMessage }];
 
-  // 1. Google Gemini 1.5 Flash (If key configured)
+  // 1. Google Gemini API (If key configured)
   if (provider === 'gemini' && apiKey) {
     try {
-      const text = await callGeminiApi(apiKey, fullHistory, systemPrompt);
+      const { text, modelName } = await callGeminiApi(apiKey, fullHistory, systemPrompt);
       return {
         id: 'aura-' + Date.now(),
         sender: 'aura',
         text,
-        engine: 'Gemini 1.5 Flash'
+        engine: `Gemini (${modelName})`
       };
     } catch (err) {
       console.warn('Gemini call failed, trying free online companion gateway:', err);

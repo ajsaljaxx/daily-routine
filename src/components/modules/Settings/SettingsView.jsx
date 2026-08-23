@@ -45,19 +45,47 @@ export default function SettingsView() {
 
     try {
       if (aiProvider === 'gemini') {
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${aiApiKey.trim()}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ role: 'user', parts: [{ text: 'Hello' }] }]
-          })
-        });
+        const modelsToTry = [
+          'gemini-2.0-flash',
+          'gemini-1.5-flash-latest',
+          'gemini-1.5-flash',
+          'gemini-1.5-pro',
+          'gemini-pro'
+        ];
 
-        if (!res.ok) {
-          const errData = await res.json().catch(() => ({}));
-          throw new Error(errData.error?.message || `Google API error (Status ${res.status})`);
+        let successModel = null;
+        let lastErr = null;
+
+        for (const modelName of modelsToTry) {
+          try {
+            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${aiApiKey.trim()}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                contents: [{ role: 'user', parts: [{ text: 'Hello' }] }]
+              })
+            });
+
+            if (res.ok) {
+              const data = await res.json();
+              if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
+                successModel = modelName;
+                break;
+              }
+            } else {
+              const errData = await res.json().catch(() => ({}));
+              lastErr = errData.error?.message || `Status ${res.status}`;
+            }
+          } catch (e) {
+            lastErr = e.message;
+          }
         }
-        setTestResult({ success: true, message: 'Google Gemini 1.5 Flash Connected & Working Live! ⚡' });
+
+        if (successModel) {
+          setTestResult({ success: true, message: `Google Gemini (${successModel}) Connected & Working Live! ⚡` });
+        } else {
+          throw new Error(lastErr || 'Google Gemini API key invalid or unsupported model');
+        }
       } else if (aiProvider === 'openai') {
         const res = await fetch('https://api.openai.com/v1/chat/completions', {
           method: 'POST',
