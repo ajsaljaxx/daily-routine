@@ -18,6 +18,14 @@ import { JUZ_NAMES } from '../data/quranData';
 
 const AppContext = createContext(null);
 
+export const getLocalDateString = (d = new Date()) => {
+  const dateObj = typeof d === 'string' ? new Date(d) : d;
+  const year = dateObj.getFullYear();
+  const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const day = String(dateObj.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 const STORAGE_KEYS = {
   PROFILE: 'aura_user_profile',
   PRAYERS: 'aura_prayers',
@@ -91,7 +99,7 @@ export function AppProvider({ children }) {
   const [aiMode, setAiMode] = useState('universal'); // 'universal' | 'coding' | 'writing' | 'spiritual' | 'productivity'
 
   const [streakStartDate, setStreakStartDate] = useState(() => 
-    loadStorage(STORAGE_KEYS.STREAK_START_DATE, new Date().toISOString().split('T')[0])
+    loadStorage(STORAGE_KEYS.STREAK_START_DATE, getLocalDateString())
   );
 
   // Sync to LocalStorage
@@ -112,15 +120,20 @@ export function AppProvider({ children }) {
   useEffect(() => saveStorage(STORAGE_KEYS.ACTIVE_PAGE, activePage), [activePage]);
   useEffect(() => saveStorage(STORAGE_KEYS.STREAK_START_DATE, streakStartDate), [streakStartDate]);
 
-  // Calculate current day streak automatically based on calendar days elapsed
+  // Calculate current day streak automatically based on calendar days elapsed (local timezone)
   const calculateDayCounter = () => {
     try {
-      const start = new Date(streakStartDate);
-      start.setHours(0, 0, 0, 0);
+      if (!streakStartDate) return 1;
+      const parts = streakStartDate.split('-').map(Number);
+      if (parts.length < 3) return 1;
+      const [sYear, sMonth, sDay] = parts;
+      const start = new Date(sYear, sMonth - 1, sDay, 0, 0, 0, 0);
+
       const now = new Date();
-      now.setHours(0, 0, 0, 0);
-      const diffTime = now.getTime() - start.getTime();
-      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+
+      const diffTime = today.getTime() - start.getTime();
+      const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
       return Math.max(1, diffDays + 1);
     } catch (e) {
       return 1;
@@ -171,28 +184,37 @@ export function AppProvider({ children }) {
     }));
   };
 
-  // Automatic Calendar Midnight Rollover
+  // Automatic Calendar Midnight Rollover (12:00 AM)
   useEffect(() => {
-    const todayStr = new Date().toISOString().split('T')[0];
-    const lastDate = loadStorage('aura_last_active_date', null);
+    const checkRollover = () => {
+      const todayStr = getLocalDateString();
+      const lastDate = loadStorage('aura_last_active_date', null);
 
-    if (lastDate && lastDate !== todayStr) {
-      resetDailyProgress();
-    }
-    saveStorage('aura_last_active_date', todayStr);
+      if (lastDate && lastDate !== todayStr) {
+        resetDailyProgress();
+      }
+      saveStorage('aura_last_active_date', todayStr);
+    };
+
+    checkRollover();
+    const interval = setInterval(checkRollover, 30000); // Check every 30s
+    return () => clearInterval(interval);
   }, []);
 
   const resetDay = () => {
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = getLocalDateString();
     setStreakStartDate(todayStr);
-    resetDailyProgress();
+    saveStorage(STORAGE_KEYS.STREAK_START_DATE, todayStr);
+    showToast('Day streak reset to Day 1 🔥', 'success');
   };
 
   const incrementDay = () => {
     setStreakStartDate(prev => {
       const d = new Date(prev);
       d.setDate(d.getDate() - 1);
-      return d.toISOString().split('T')[0];
+      const dStr = getLocalDateString(d);
+      saveStorage(STORAGE_KEYS.STREAK_START_DATE, dStr);
+      return dStr;
     });
     showToast('Day streak incremented!', 'success');
   };
@@ -201,14 +223,18 @@ export function AppProvider({ children }) {
     setStreakStartDate(prev => {
       const d = new Date(prev);
       d.setDate(d.getDate() + 1);
-      return d.toISOString().split('T')[0];
+      const dStr = getLocalDateString(d);
+      saveStorage(STORAGE_KEYS.STREAK_START_DATE, dStr);
+      return dStr;
     });
   };
 
   const setDayCounter = (days) => {
     const d = new Date();
     d.setDate(d.getDate() - (Math.max(1, days) - 1));
-    setStreakStartDate(d.toISOString().split('T')[0]);
+    const dStr = getLocalDateString(d);
+    setStreakStartDate(dStr);
+    saveStorage(STORAGE_KEYS.STREAK_START_DATE, dStr);
   };
 
   // Apply Theme

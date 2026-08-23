@@ -35,20 +35,6 @@ export default function Header({ onOpenQuickAction }) {
 
       {/* Right Controls */}
       <div className="header-right">
-        {/* Start New Day Button */}
-        <button
-          className="btn btn-secondary btn-sm"
-          onClick={() => {
-            if (window.confirm("Start a New Day? This will reset Swalah, Qur'an pages, Habits, and Sleep log to their initial state for the new day.")) {
-              resetDailyProgress();
-            }
-          }}
-          style={{ gap: '6px', fontSize: '0.8rem', fontWeight: 600 }}
-          title="Reset daily trackers for a fresh new day"
-        >
-          <RotateCcw size={15} />
-          <span>Start New Day</span>
-        </button>
 
         {/* Quick Add Button */}
         <button
