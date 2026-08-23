@@ -159,23 +159,15 @@ export function AppProvider({ children }) {
     // 4. Reset Hydration glasses
     setWaterGlasses(0);
 
-    // 5. Sleep Recovery: Calculate primary night sleep for the new day
-    setSleep(prev => {
-      const newNight = {
-        from: fromT,
-        to: toT,
-        durationHours: baseSleepHours,
-        date: todayStr
-      };
-      const filteredHistory = (prev.history || []).filter(h => h.date !== todayStr);
-      return {
-        lastNight: newNight,
-        history: [
-          { date: todayStr, from: fromT, to: toT, duration: baseSleepHours },
-          ...filteredHistory
-        ].slice(0, 31)
-      };
-    });
+    // 5. Sleep Recovery: Initialize clean 0h sleep state for a new day
+    setSleep(prev => ({
+      ...prev,
+      lastNight: {
+        durationHours: 0,
+        date: todayStr,
+        sessions: []
+      }
+    }));
   };
 
   // Automatic Calendar Midnight Rollover
@@ -379,29 +371,41 @@ export function AppProvider({ children }) {
     showToast('Task updated', 'success');
   };
 
-  // Sleep Handlers: Record Night Sleep or Extra Sleep / Naps
+  // Sleep Handlers: Record Sleep Sessions (Supports 1, 2, or 3 sessions per day)
   const logSleep = (sleepEntry) => {
     const fromTime = sleepEntry.from || "23:00";
     const toTime = sleepEntry.to || "06:00";
-    const addedHours = calculateDuration(fromTime, toTime);
+    const sessionHours = calculateDuration(fromTime, toTime);
     const todayStr = new Date().toISOString().split('T')[0];
 
     setSleep(prev => {
-      const currentNight = prev.lastNight || { durationHours: 0, from: "23:00", to: "06:00" };
-      const accumulatedHours = Number((Number(currentNight.durationHours || 0) + addedHours).toFixed(1));
+      const currentLastNight = prev.lastNight || { durationHours: 0, date: todayStr, sessions: [] };
+      const currentSessions = Array.isArray(currentLastNight.sessions) ? currentLastNight.sessions : [];
+
+      const newSession = {
+        id: 'sess-' + Date.now(),
+        label: `Sleep ${currentSessions.length + 1}`,
+        from: fromTime,
+        to: toTime,
+        duration: sessionHours
+      };
+
+      const updatedSessions = [...currentSessions, newSession];
+      const newTotalHours = Number(updatedSessions.reduce((sum, s) => sum + (Number(s.duration) || 0), 0).toFixed(1));
 
       const updatedNight = {
-        from: sleepEntry.overwrite ? fromTime : currentNight.from,
-        to: sleepEntry.overwrite ? toTime : currentNight.to,
-        durationHours: sleepEntry.overwrite ? addedHours : accumulatedHours,
-        date: todayStr
+        durationHours: newTotalHours,
+        date: todayStr,
+        sessions: updatedSessions,
+        from: updatedSessions[0]?.from || fromTime,
+        to: updatedSessions[updatedSessions.length - 1]?.to || toTime
       };
 
       const filteredHistory = (prev.history || []).filter(h => h.date !== todayStr);
       return {
         lastNight: updatedNight,
         history: [
-          { date: todayStr, from: updatedNight.from, to: updatedNight.to, duration: updatedNight.durationHours },
+          { date: todayStr, from: updatedNight.from, to: updatedNight.to, duration: newTotalHours },
           ...filteredHistory
         ].slice(0, 31)
       };

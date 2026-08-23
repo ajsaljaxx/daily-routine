@@ -306,49 +306,75 @@ export default function SleepView() {
         {/* Timeline representation */}
         <div className="aura-card">
           <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '16px' }}>
-            Last Night Timeline
+            Today's Sleep Sessions
           </h3>
 
-          <div style={{
-            backgroundColor: 'var(--bg-secondary)',
-            borderRadius: 'var(--radius-md)',
-            padding: '20px',
-            border: '1px solid var(--border-light)',
-            marginBottom: '16px'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Moon size={18} color="var(--primary-royal)" />
-                <div>
-                  <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', display: 'block' }}>Bedtime</span>
-                  <strong style={{ fontSize: '1.1rem', color: 'var(--text-primary)' }}>{lastNight.from}</strong>
+          {(() => {
+            const sessions = Array.isArray(lastNight.sessions) ? lastNight.sessions : [];
+            if (sessions.length === 0) {
+              return (
+                <div style={{
+                  backgroundColor: 'var(--bg-secondary)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '24px 20px',
+                  border: '1px solid var(--border-light)',
+                  textAlign: 'center',
+                  color: 'var(--text-muted)',
+                  fontSize: '0.84rem'
+                }}>
+                  No sleep sessions recorded for today yet. Click <strong>Record Sleep</strong> above to add your sleep times.
                 </div>
-              </div>
+              );
+            }
 
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-end' }}>
-                  <div>
-                    <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', display: 'block' }}>Wake Time</span>
-                    <strong style={{ fontSize: '1.1rem', color: 'var(--text-primary)' }}>{lastNight.to}</strong>
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {sessions.map((sess, idx) => (
+                  <div key={sess.id || idx} style={{
+                    backgroundColor: 'var(--bg-secondary)',
+                    borderRadius: 'var(--radius-md)',
+                    padding: '14px 18px',
+                    border: '1px solid var(--border-light)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    flexWrap: 'wrap',
+                    gap: '8px'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Moon size={16} color="var(--primary-royal)" />
+                      <span style={{ fontSize: '0.86rem', fontWeight: 800, color: 'var(--primary-royal)' }}>
+                        {sess.label || `Sleep ${idx + 1}`}
+                      </span>
+                    </div>
+
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                      Bedtime: <strong style={{ color: 'var(--text-primary)' }}>{sess.from}</strong>
+                    </div>
+
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                      Wake: <strong style={{ color: 'var(--text-primary)' }}>{sess.to}</strong>
+                    </div>
+
+                    <span style={{
+                      fontSize: '0.8rem',
+                      fontWeight: 800,
+                      padding: '3px 9px',
+                      borderRadius: 'var(--radius-full)',
+                      background: 'var(--primary-soft)',
+                      color: 'var(--primary-deep)'
+                    }}>
+                      {sess.duration} Hours
+                    </span>
                   </div>
-                  <Sunrise size={18} color="#F4A340" />
+                ))}
+
+                <div style={{ textAlign: 'center', marginTop: '6px', fontSize: '0.85rem', fontWeight: 800, color: 'var(--primary-royal)' }}>
+                  Total Rest Today: {currentDuration} Hours
                 </div>
               </div>
-            </div>
-
-            {/* Glowing Gradient Sleep Bar */}
-            <div style={{
-              height: '18px',
-              borderRadius: 'var(--radius-full)',
-              background: 'linear-gradient(90deg, #020202 0%, #3A92D8 50%, #B2D5E5 100%)',
-              boxShadow: '0 4px 14px rgba(58, 146, 216, 0.35)',
-              position: 'relative'
-            }} />
-
-            <div style={{ textAlign: 'center', marginTop: '12px', fontSize: '0.85rem', fontWeight: 700, color: 'var(--primary-royal)' }}>
-              Total Duration: {lastNight.durationHours} Hours
-            </div>
-          </div>
+            );
+          })()}
         </div>
 
         {/* Monthly Sleep Duration Chart */}

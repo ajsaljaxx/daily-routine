@@ -8,6 +8,7 @@ export function SleepQuickCard() {
   const history = sleep.history || [];
   const targetGoal = Number(userProfile?.dailySleepTarget) || 7.5;
   const currentDuration = Number(lastNight.durationHours) || 0;
+  const sessions = Array.isArray(lastNight.sessions) ? lastNight.sessions : [];
 
   // Monthly calculation starting with current month
   const now = new Date();
@@ -86,23 +87,49 @@ export function SleepQuickCard() {
         </div>
       </div>
 
-      {/* Visual sleep timeline bar */}
-      <div style={{
-        background: 'var(--bg-secondary)',
-        padding: '9px 12px',
-        borderRadius: 'var(--radius-sm)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginBottom: '10px'
-      }}>
-        <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>
-          Bedtime: <strong style={{ color: 'var(--text-primary)' }}>{lastNight.from}</strong>
+      {/* Visual sleep session boxes - ONLY displayed after entering sleep details */}
+      {sessions.length === 0 ? (
+        <div style={{
+          background: 'var(--bg-secondary)',
+          padding: '10px 12px',
+          borderRadius: 'var(--radius-sm)',
+          fontSize: '0.76rem',
+          color: 'var(--text-muted)',
+          textAlign: 'center',
+          marginBottom: '10px'
+        }}>
+          No sleep sessions recorded for today yet.
         </div>
-        <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>
-          Wake: <strong style={{ color: 'var(--text-primary)' }}>{lastNight.to}</strong>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '10px' }}>
+          {sessions.map((sess, idx) => (
+            <div
+              key={sess.id || idx}
+              style={{
+                background: 'var(--bg-secondary)',
+                padding: '8px 12px',
+                borderRadius: 'var(--radius-sm)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between'
+              }}
+            >
+              <span style={{ fontSize: '0.76rem', fontWeight: 700, color: 'var(--primary-royal)' }}>
+                {sess.label || `Sleep ${idx + 1}`}
+              </span>
+              <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>
+                Bedtime: <strong style={{ color: 'var(--text-primary)' }}>{sess.from}</strong>
+              </div>
+              <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>
+                Wake: <strong style={{ color: 'var(--text-primary)' }}>{sess.to}</strong>
+              </div>
+              <span style={{ fontSize: '0.76rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                {sess.duration}h
+              </span>
+            </div>
+          ))}
         </div>
-      </div>
+      )}
 
       {/* 3-Condition Status Badge */}
       <div style={{

@@ -163,10 +163,9 @@ export const INITIAL_TASKS = [
 
 export const INITIAL_SLEEP_DATA = {
   lastNight: {
-    from: "23:00",
-    to: "05:30",
     durationHours: 0,
-    date: new Date().toISOString().split('T')[0]
+    date: new Date().toISOString().split('T')[0],
+    sessions: []
   },
   history: [
     { date: "2026-08-01", from: "23:00", to: "06:30", duration: 7.5 },
