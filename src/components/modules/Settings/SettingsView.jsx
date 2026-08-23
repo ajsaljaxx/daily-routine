@@ -13,16 +13,24 @@ import {
   CheckCircle2,
   Shield,
   Sparkles,
-  FileText
+  FileText,
+  Calendar,
+  Printer
 } from 'lucide-react';
 
 export default function SettingsView() {
-  const { userProfile, setUserProfile, exportAllDataPdf, resetToSampleData, showToast } = useApp();
+  const { userProfile, setUserProfile, exportCustomDataPdf, resetToSampleData, showToast } = useApp();
 
   const [name, setName] = useState(userProfile?.name || 'Ajsal');
   const [tagline, setTagline] = useState(userProfile?.tagline || 'Building discipline & lifelong growth');
   const [currency, setCurrency] = useState(userProfile?.currency || '₹');
   const [theme, setTheme] = useState(userProfile?.theme || 'light');
+
+  // Custom PDF Export State
+  const [exportSwalah, setExportSwalah] = useState(true);
+  const [exportQuran, setExportQuran] = useState(true);
+  const [exportSleep, setExportSleep] = useState(true);
+  const [exportDate, setExportDate] = useState('');
   const [targetSleepTime, setTargetSleepTime] = useState(userProfile?.targetSleepTime || '23:00');
   const [targetWakeTime, setTargetWakeTime] = useState(userProfile?.targetWakeTime || '05:30');
   const [dailySleepTarget, setDailySleepTarget] = useState(userProfile?.dailySleepTarget || 7.5);
@@ -382,19 +390,90 @@ export default function SettingsView() {
         </button>
       </form>
 
-      {/* 4. Data Management & Backups */}
+      {/* 4. Custom PDF Data Export & Printing */}
       <div className="aura-card">
-        <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '14px', color: 'var(--text-primary)' }}>
-          Data Portability & PDF Backups
-        </h3>
-        <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', marginBottom: '18px' }}>
-          All your personal logs, prayers, tasks, finances, and journal entries are safely stored in your browser. You can export a comprehensive PDF backup report at any time.
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
+          <FileText size={20} color="var(--primary-royal)" />
+          <h3 style={{ fontSize: '1.2rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>
+            Export Data & PDF Report Generator
+          </h3>
+        </div>
+
+        <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', marginBottom: '20px' }}>
+          Select routine sections and an optional date to generate a clean, line-by-line print report (Daily Things / Habits are excluded).
         </p>
 
+        {/* Section Toggles */}
+        <div style={{ marginBottom: '20px', padding: '16px', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)' }}>
+          <label style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-primary)', display: 'block', marginBottom: '12px' }}>
+            1. Select Export Sections:
+          </label>
+          <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+              <input
+                type="checkbox"
+                checked={exportSwalah}
+                onChange={e => setExportSwalah(e.target.checked)}
+                style={{ width: '18px', height: '18px', accentColor: 'var(--primary-royal)' }}
+              />
+              🕌 Swalah Prayers
+            </label>
+
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+              <input
+                type="checkbox"
+                checked={exportQuran}
+                onChange={e => setExportQuran(e.target.checked)}
+                style={{ width: '18px', height: '18px', accentColor: 'var(--primary-royal)' }}
+              />
+              📖 Qur'an Reading
+            </label>
+
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+              <input
+                type="checkbox"
+                checked={exportSleep}
+                onChange={e => setExportSleep(e.target.checked)}
+                style={{ width: '18px', height: '18px', accentColor: 'var(--primary-royal)' }}
+              />
+              😴 Sleep Tracker & History
+            </label>
+          </div>
+        </div>
+
+        {/* Date Selector with Calendar Icon */}
+        <div style={{ marginBottom: '24px', maxWidth: '340px' }}>
+          <label style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-primary)', display: 'block', marginBottom: '8px' }}>
+            2. Date Selector (Optional Filter):
+          </label>
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+            <Calendar size={18} color="var(--primary-royal)" style={{ position: 'absolute', left: '12px', pointerEvents: 'none' }} />
+            <input
+              type="date"
+              value={exportDate}
+              onChange={e => setExportDate(e.target.value)}
+              style={{ paddingLeft: '38px', height: '42px', fontSize: '0.88rem', width: '100%', borderRadius: 'var(--radius-sm)' }}
+            />
+          </div>
+          <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block', marginTop: '6px' }}>
+            {exportDate ? `📅 Filtered for single date: ${exportDate}` : '📅 No date selected: Will print all days of the current month line by line.'}
+          </span>
+        </div>
+
+        {/* Action Buttons */}
         <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-          <button onClick={exportAllDataPdf} className="btn btn-primary" style={{ gap: '8px' }}>
-            <FileText size={16} />
-            <span>Export Backup (PDF)</span>
+          <button
+            onClick={() => exportCustomDataPdf({
+              includeSwalah: exportSwalah,
+              includeQuran: exportQuran,
+              includeSleep: exportSleep,
+              selectedDate: exportDate
+            })}
+            className="btn btn-primary"
+            style={{ gap: '8px', padding: '12px 24px' }}
+          >
+            <Printer size={18} />
+            <span>Generate & Print Custom PDF Report</span>
           </button>
 
           <button

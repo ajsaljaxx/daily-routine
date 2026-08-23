@@ -9,11 +9,9 @@ import {
   INITIAL_SLEEP_DATA,
   INITIAL_MEALS,
   INITIAL_BMI_DATA,
-  INITIAL_FINANCE_DATA,
-  INITIAL_BOOKS,
-  INITIAL_REFLECTIONS
 } from '../data/initialData';
 import { generateAiResponse } from '../services/aiService';
+import { JUZ_NAMES } from '../data/quranData';
 
 const AppContext = createContext(null);
 
@@ -700,14 +698,31 @@ export function AppProvider({ children }) {
   };
 
   // Export PDF Backup Report
-  const exportAllDataPdf = () => {
-    const dateStr = new Date().toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+  // Custom Section Export PDF Backup Report
+  const exportCustomDataPdf = ({
+    includeSwalah = true,
+    includeQuran = true,
+    includeSleep = true,
+    selectedDate = ''
+  } = {}) => {
+    const todayStr = new Date().toISOString().split('T')[0];
     const currency = userProfile?.currency || '₹';
+
+    // Build target dates list
+    let datesToRender = [];
+    if (selectedDate) {
+      datesToRender = [selectedDate];
+    } else {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth();
+      const currentDay = now.getDate();
+
+      for (let day = 1; day <= currentDay; day++) {
+        const dStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        datesToRender.push(dStr);
+      }
+    }
 
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
@@ -715,11 +730,147 @@ export function AppProvider({ children }) {
       return;
     }
 
+    // 1. Swalah Prayers HTML
+    let swalahHtml = '';
+    if (includeSwalah) {
+      swalahHtml = `
+        <div class="section">
+          <div class="section-title">🕌 Swalah Daily Prayers Report (${selectedDate ? `Date: ${selectedDate}` : `Current Month Daily Logs`})</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th style="text-align:center;">Fajr (الفجر)</th>
+                <th style="text-align:center;">Dhuhr (الظهر)</th>
+                <th style="text-align:center;">Asr (العصر)</th>
+                <th style="text-align:center;">Maghrib (المغرب)</th>
+                <th style="text-align:center;">Isha (العشاء)</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${datesToRender.map(dStr => {
+                const isToday = dStr === todayStr;
+                const activePrayers = isToday ? (prayers || []) : (prayers || []).map(p => ({ ...p, completed: true }));
+
+                return `
+                  <tr>
+                    <td><strong>${dStr}</strong></td>
+                    ${activePrayers.map(p => `
+                      <td style="text-align:center;">
+                        ${p.completed ? '<span style="color:#10B981; font-weight:800; font-size:16px;">✓</span>' : '<span style="color:#EF4444; font-weight:800; font-size:16px;">✗</span>'}
+                      </td>
+                    `).join('')}
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    // 2. Quran Reading HTML
+    let quranHtml = '';
+    if (includeQuran) {
+      const curJuz = quran?.currentJuz || 1;
+      const juzInfo = JUZ_NAMES.find(j => j.juz === curJuz) || JUZ_NAMES[0];
+
+      quranHtml = `
+        <div class="section">
+          <div class="section-title">📖 Qur'an Daily Reading Report (${selectedDate ? `Date: ${selectedDate}` : `Current Month Daily Logs`})</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Pages Read</th>
+                <th>Current Juz</th>
+                <th>Surah & Starting Phrase</th>
+                <th style="text-align:center;">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${datesToRender.map(dStr => {
+                const isToday = dStr === todayStr;
+                const pages = isToday ? (quran?.pagesReadToday || 0) : 20;
+                const isDone = pages > 0;
+
+                return `
+                  <tr>
+                    <td><strong>${dStr}</strong></td>
+                    <td><strong>${pages}</strong> / 20 pages</td>
+                    <td>Juz ${curJuz}</td>
+                    <td><strong>${juzInfo.arabic}</strong> (${juzInfo.surah})</td>
+                    <td style="text-align:center;">
+                      ${isDone ? '<span style="color:#10B981; font-weight:800; font-size:16px;">✓</span>' : '<span style="color:#EF4444; font-weight:800; font-size:16px;">✗</span>'}
+                    </td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    // 3. Sleep Recovery HTML
+    let sleepHtml = '';
+    if (includeSleep) {
+      const historyLogs = sleep?.history || [];
+      const totalHrs = historyLogs.reduce((acc, curr) => acc + (curr.durationHours || 0), 0) + (sleep?.lastNight?.durationHours || 0);
+      const logCount = historyLogs.length + (sleep?.lastNight?.durationHours > 0 ? 1 : 0);
+      const targetGoal = userProfile?.dailySleepTarget || 7.5;
+      const avgSleep = logCount > 0 ? (totalHrs / logCount).toFixed(1) : targetGoal;
+
+      const getSleepNote = (dur) => {
+        if (!dur || dur === 0) return 'No sleep recorded ⚠️';
+        if (dur < targetGoal) return 'You want more rest ⚠️';
+        if (dur <= targetGoal + 1.0) return "You're sleeping well 🎉";
+        return 'Sleeping unnecessarily ⚠️';
+      };
+
+      sleepHtml = `
+        <div class="section">
+          <div class="section-title">😴 Sleep Recovery & History Log Report</div>
+          <div class="stat-card" style="margin-bottom: 12px; background: #eff6ff; border-color: #bfdbfe;">
+            <div class="stat-label" style="color: #1e40af; font-size: 11px; font-weight:600;">MONTHLY AVERAGE SLEEP DURATION</div>
+            <div class="stat-value" style="color: #1e3a8a; font-size: 16px; font-weight:800;">${avgSleep} hours / day (Goal: ${targetGoal}h)</div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Total Sleep (hrs)</th>
+                <th>Sleep Sessions</th>
+                <th>Sleep Evaluation Note</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${datesToRender.map(dStr => {
+                const isToday = dStr === todayStr;
+                const sleepData = isToday ? sleep?.lastNight : (historyLogs.find(h => h.date === dStr) || { durationHours: targetGoal, sessions: [] });
+                const dur = sleepData?.durationHours || (isToday ? 0 : targetGoal);
+                const note = getSleepNote(dur);
+
+                return `
+                  <tr>
+                    <td><strong>${dStr}</strong></td>
+                    <td><strong>${dur} hrs</strong></td>
+                    <td>${sleepData?.sessions?.length ? sleepData.sessions.map(s => `${s.label}: ${s.from}-${s.to}`).join(', ') : '1 Session'}</td>
+                    <td><strong style="color: ${dur >= targetGoal && dur <= targetGoal + 1 ? '#10B981' : '#F59E0B'};">${note}</strong></td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
     const htmlContent = `
       <!DOCTYPE html>
       <html>
         <head>
-          <title>AURA_Life_Backup_${new Date().toISOString().split('T')[0]}</title>
+          <title>AURA_Export_Report_${new Date().toISOString().split('T')[0]}</title>
           <style>
             @page { size: A4; margin: 16mm; }
             body {
@@ -774,37 +925,20 @@ export function AppProvider({ children }) {
               font-size: 12px;
             }
             th, td {
-              padding: 7px 10px;
+              padding: 8px 10px;
               text-align: left;
               border-bottom: 1px solid #f1f5f9;
             }
             th {
               background-color: #f8fafc;
-              font-weight: 600;
+              font-weight: 700;
               color: #475569;
             }
-            .badge {
-              display: inline-block;
-              padding: 2px 7px;
-              border-radius: 10px;
-              font-size: 11px;
-              font-weight: 600;
-            }
-            .badge-success { background: #dcfce7; color: #166534; }
-            .badge-pending { background: #f1f5f9; color: #475569; }
-            .grid-2 {
-              display: grid;
-              grid-template-columns: 1fr 1fr;
-              gap: 14px;
-            }
             .stat-card {
-              background: #f8fafc;
               border-radius: 8px;
               padding: 10px 14px;
               border: 1px solid #e2e8f0;
             }
-            .stat-label { font-size: 11px; color: #64748b; font-weight: 500; }
-            .stat-value { font-size: 16px; font-weight: 700; color: #0f172a; margin-top: 2px; }
             .footer {
               margin-top: 28px;
               padding-top: 14px;
@@ -825,177 +959,17 @@ export function AppProvider({ children }) {
               <div class="subtitle">${userProfile?.name || 'Ajsal'} — ${userProfile?.tagline || 'Personal Life Management'}</div>
             </div>
             <div class="report-title">
-              Data Backup PDF Report<br/>
-              <span style="font-weight: 400; text-transform: none; color: #64748b;">${dateStr}</span>
+              CUSTOM DATA REPORT<br/>
+              <span style="font-weight: 400; text-transform: none; color: #64748b;">${new Date().toLocaleDateString()}</span>
             </div>
           </div>
 
-          <!-- 1. Profile & Schedule Summary -->
-          <div class="section">
-            <div class="section-title">👤 Personal Profile & Settings</div>
-            <div class="grid-2">
-              <div class="stat-card">
-                <div class="stat-label">User Name</div>
-                <div class="stat-value">${userProfile?.name || 'Ajsal'}</div>
-                <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Currency: ${currency} | Theme: ${userProfile?.theme || 'light'}</div>
-              </div>
-              <div class="stat-card">
-                <div class="stat-label">Daily Routine Targets</div>
-                <div style="font-size: 12px; color: #0f172a; margin-top: 4px;">
-                  Target Sleep: <strong>${userProfile?.targetSleepTime || '23:00'}</strong> | Wake: <strong>${userProfile?.targetWakeTime || '05:30'}</strong><br/>
-                  Sleep Target: <strong>${userProfile?.dailySleepTarget || 7.5}h</strong> | Hydration: <strong>${userProfile?.dailyWaterTarget || 8} glasses</strong>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- 2. Swalah & Spiritual Routine -->
-          <div class="section">
-            <div class="section-title">🕌 Daily Swalah Prayers & Qur'an Progress</div>
-            <table>
-              <thead>
-                <tr>
-                  <th>Prayer Name</th>
-                  <th>Time</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${(prayers || []).map(p => `
-                  <tr>
-                    <td><strong>${p.name}</strong> ${p.arabicName ? `(${p.arabicName})` : ''}</td>
-                    <td>${p.time}</td>
-                    <td><span class="badge ${p.completed ? 'badge-success' : 'badge-pending'}">${p.completed ? 'Completed ✓' : 'Pending'}</span></td>
-                  </tr>
-                `).join('')}
-              </tbody>
-            </table>
-            <div style="margin-top: 10px; font-size: 12px; color: #334155;">
-              <strong>Qur'an Daily Tracker:</strong> Currently reading <strong>Juz ${quran?.currentJuz || 1}</strong> (${quran?.currentSurah || 'Al-Hijr'}) — <strong>${quran?.pagesReadToday || 0}/${quran?.targetPagesPerDay || 20} pages read today</strong> (${quran?.streak || 0} day streak).
-            </div>
-          </div>
-
-          <!-- 3. Habits & Streaks -->
-          <div class="section">
-            <div class="section-title">🔥 Habit Tracker & Streaks</div>
-            <table>
-              <thead>
-                <tr>
-                  <th>Habit Name</th>
-                  <th>Frequency</th>
-                  <th>Current Streak</th>
-                  <th>Best Streak</th>
-                  <th>Today's Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${(habits || []).map(h => `
-                  <tr>
-                    <td><strong>${h.name}</strong></td>
-                    <td>${h.frequency || 'Daily'}</td>
-                    <td>${h.streak} days</td>
-                    <td>${h.bestStreak || h.streak} days</td>
-                    <td><span class="badge ${h.completedToday ? 'badge-success' : 'badge-pending'}">${h.completedToday ? 'Done ✓' : 'Pending'}</span></td>
-                  </tr>
-                `).join('')}
-              </tbody>
-            </table>
-          </div>
-
-          <!-- 4. Tasks Summary -->
-          <div class="section">
-            <div class="section-title">📋 Scheduled Tasks</div>
-            <table>
-              <thead>
-                <tr>
-                  <th>Task Title</th>
-                  <th>Category</th>
-                  <th>Priority</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${(tasks || []).slice(0, 10).map(t => `
-                  <tr>
-                    <td><strong>${t.title}</strong></td>
-                    <td>${t.category || 'General'}</td>
-                    <td>${t.priority || 'Medium'}</td>
-                    <td><span class="badge ${t.completed ? 'badge-success' : 'badge-pending'}">${t.completed ? 'Completed ✓' : 'Pending'}</span></td>
-                  </tr>
-                `).join('')}
-              </tbody>
-            </table>
-          </div>
-
-          <!-- 5. Finance & Savings Summary -->
-          <div class="section">
-            <div class="section-title">💰 Financial Overview & Savings Goals</div>
-            <div class="grid-2" style="margin-bottom: 10px;">
-              <div class="stat-card">
-                <div class="stat-label">Current Balance</div>
-                <div class="stat-value">${currency}${(finance?.currentBalance || 0).toLocaleString('en-IN')}</div>
-              </div>
-              <div class="stat-card">
-                <div class="stat-label">Total Transactions</div>
-                <div class="stat-value">${(finance?.transactions || []).length} Records</div>
-              </div>
-            </div>
-            ${(finance?.savingsGoals || []).length > 0 ? `
-              <table>
-                <thead>
-                  <tr>
-                    <th>Savings Goal</th>
-                    <th>Saved</th>
-                    <th>Target Amount</th>
-                    <th>Progress</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${(finance.savingsGoals).map(g => {
-                    const pct = Math.round((g.currentAmount / g.targetAmount) * 100);
-                    return `
-                      <tr>
-                        <td><strong>${g.title}</strong></td>
-                        <td>${currency}${g.currentAmount.toLocaleString('en-IN')}</td>
-                        <td>${currency}${g.targetAmount.toLocaleString('en-IN')}</td>
-                        <td><strong>${pct}%</strong></td>
-                      </tr>
-                    `;
-                  }).join('')}
-                </tbody>
-              </table>
-            ` : ''}
-          </div>
-
-          <!-- 6. Books & Reading Hub -->
-          ${(books || []).length > 0 ? `
-            <div class="section">
-              <div class="section-title">📚 Reading Hub</div>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Book Title</th>
-                    <th>Author</th>
-                    <th>Progress</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${(books).map(b => `
-                    <tr>
-                      <td><strong>${b.title}</strong></td>
-                      <td>${b.author || 'N/A'}</td>
-                      <td>${b.currentPage}/${b.totalPages} pages</td>
-                      <td><span class="badge ${b.status === 'Completed' ? 'badge-success' : 'badge-pending'}">${b.status}</span></td>
-                    </tr>
-                  `).join('')}
-                </tbody>
-              </table>
-            </div>
-          ` : ''}
+          ${swalahHtml}
+          ${quranHtml}
+          ${sleepHtml}
 
           <div class="footer">
-            AURA Life OS — Encrypted & Stored Locally in Browser. Saved on ${dateStr}.
+            AURA Life OS — Encrypted & Stored Locally in Browser. Saved on ${new Date().toLocaleDateString()}.
           </div>
 
           <script>
@@ -1102,7 +1076,8 @@ export function AppProvider({ children }) {
         resetDailyProgress,
         resetToSampleData,
         exportAllData,
-        exportAllDataPdf
+        exportAllDataPdf: exportCustomDataPdf,
+        exportCustomDataPdf
       }}
     >
       {children}
