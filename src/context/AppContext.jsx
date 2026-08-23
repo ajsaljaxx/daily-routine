@@ -630,6 +630,321 @@ export function AppProvider({ children }) {
     showToast('Reset to original sample data completed', 'info');
   };
 
+  // Export PDF Backup Report
+  const exportAllDataPdf = () => {
+    const dateStr = new Date().toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+    const currency = userProfile?.currency || '₹';
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      showToast('Please allow popup permissions to generate PDF report', 'warning');
+      return;
+    }
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>AURA_Life_Backup_${new Date().toISOString().split('T')[0]}</title>
+          <style>
+            @page { size: A4; margin: 16mm; }
+            body {
+              font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+              color: #1e293b;
+              line-height: 1.5;
+              padding: 0;
+              margin: 0;
+              background: #ffffff;
+            }
+            .header {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              border-bottom: 2px solid #2457FF;
+              padding-bottom: 14px;
+              margin-bottom: 20px;
+            }
+            .brand {
+              font-size: 22px;
+              font-weight: 800;
+              color: #2457FF;
+              letter-spacing: -0.5px;
+            }
+            .subtitle {
+              font-size: 13px;
+              color: #64748b;
+            }
+            .report-title {
+              font-size: 11px;
+              font-weight: 700;
+              text-transform: uppercase;
+              color: #475569;
+              text-align: right;
+            }
+            .section {
+              margin-bottom: 20px;
+              page-break-inside: avoid;
+            }
+            .section-title {
+              font-size: 15px;
+              font-weight: 700;
+              color: #0f172a;
+              border-bottom: 1px solid #e2e8f0;
+              padding-bottom: 4px;
+              margin-bottom: 10px;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-top: 6px;
+              font-size: 12px;
+            }
+            th, td {
+              padding: 7px 10px;
+              text-align: left;
+              border-bottom: 1px solid #f1f5f9;
+            }
+            th {
+              background-color: #f8fafc;
+              font-weight: 600;
+              color: #475569;
+            }
+            .badge {
+              display: inline-block;
+              padding: 2px 7px;
+              border-radius: 10px;
+              font-size: 11px;
+              font-weight: 600;
+            }
+            .badge-success { background: #dcfce7; color: #166534; }
+            .badge-pending { background: #f1f5f9; color: #475569; }
+            .grid-2 {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 14px;
+            }
+            .stat-card {
+              background: #f8fafc;
+              border-radius: 8px;
+              padding: 10px 14px;
+              border: 1px solid #e2e8f0;
+            }
+            .stat-label { font-size: 11px; color: #64748b; font-weight: 500; }
+            .stat-value { font-size: 16px; font-weight: 700; color: #0f172a; margin-top: 2px; }
+            .footer {
+              margin-top: 28px;
+              padding-top: 14px;
+              border-top: 1px solid #e2e8f0;
+              font-size: 11px;
+              color: #94a3b8;
+              text-align: center;
+            }
+            @media print {
+              body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div>
+              <div class="brand">AURA Life OS</div>
+              <div class="subtitle">${userProfile?.name || 'Ajsal'} — ${userProfile?.tagline || 'Personal Life Management'}</div>
+            </div>
+            <div class="report-title">
+              Data Backup PDF Report<br/>
+              <span style="font-weight: 400; text-transform: none; color: #64748b;">${dateStr}</span>
+            </div>
+          </div>
+
+          <!-- 1. Profile & Schedule Summary -->
+          <div class="section">
+            <div class="section-title">👤 Personal Profile & Settings</div>
+            <div class="grid-2">
+              <div class="stat-card">
+                <div class="stat-label">User Name</div>
+                <div class="stat-value">${userProfile?.name || 'Ajsal'}</div>
+                <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Currency: ${currency} | Theme: ${userProfile?.theme || 'light'}</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">Daily Routine Targets</div>
+                <div style="font-size: 12px; color: #0f172a; margin-top: 4px;">
+                  Target Sleep: <strong>${userProfile?.targetSleepTime || '23:00'}</strong> | Wake: <strong>${userProfile?.targetWakeTime || '05:30'}</strong><br/>
+                  Sleep Target: <strong>${userProfile?.dailySleepTarget || 7.5}h</strong> | Hydration: <strong>${userProfile?.dailyWaterTarget || 8} glasses</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Swalah & Spiritual Routine -->
+          <div class="section">
+            <div class="section-title">🕌 Daily Swalah Prayers & Qur'an Progress</div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Prayer Name</th>
+                  <th>Time</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${(prayers || []).map(p => `
+                  <tr>
+                    <td><strong>${p.name}</strong> ${p.arabicName ? `(${p.arabicName})` : ''}</td>
+                    <td>${p.time}</td>
+                    <td><span class="badge ${p.completed ? 'badge-success' : 'badge-pending'}">${p.completed ? 'Completed ✓' : 'Pending'}</span></td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+            <div style="margin-top: 10px; font-size: 12px; color: #334155;">
+              <strong>Qur'an Daily Tracker:</strong> Currently reading <strong>Juz ${quran?.currentJuz || 1}</strong> (${quran?.currentSurah || 'Al-Hijr'}) — <strong>${quran?.pagesReadToday || 0}/${quran?.targetPagesPerDay || 20} pages read today</strong> (${quran?.streak || 0} day streak).
+            </div>
+          </div>
+
+          <!-- 3. Habits & Streaks -->
+          <div class="section">
+            <div class="section-title">🔥 Habit Tracker & Streaks</div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Habit Name</th>
+                  <th>Frequency</th>
+                  <th>Current Streak</th>
+                  <th>Best Streak</th>
+                  <th>Today's Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${(habits || []).map(h => `
+                  <tr>
+                    <td><strong>${h.name}</strong></td>
+                    <td>${h.frequency || 'Daily'}</td>
+                    <td>${h.streak} days</td>
+                    <td>${h.bestStreak || h.streak} days</td>
+                    <td><span class="badge ${h.completedToday ? 'badge-success' : 'badge-pending'}">${h.completedToday ? 'Done ✓' : 'Pending'}</span></td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- 4. Tasks Summary -->
+          <div class="section">
+            <div class="section-title">📋 Scheduled Tasks</div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Task Title</th>
+                  <th>Category</th>
+                  <th>Priority</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${(tasks || []).slice(0, 10).map(t => `
+                  <tr>
+                    <td><strong>${t.title}</strong></td>
+                    <td>${t.category || 'General'}</td>
+                    <td>${t.priority || 'Medium'}</td>
+                    <td><span class="badge ${t.completed ? 'badge-success' : 'badge-pending'}">${t.completed ? 'Completed ✓' : 'Pending'}</span></td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- 5. Finance & Savings Summary -->
+          <div class="section">
+            <div class="section-title">💰 Financial Overview & Savings Goals</div>
+            <div class="grid-2" style="margin-bottom: 10px;">
+              <div class="stat-card">
+                <div class="stat-label">Current Balance</div>
+                <div class="stat-value">${currency}${(finance?.currentBalance || 0).toLocaleString('en-IN')}</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">Total Transactions</div>
+                <div class="stat-value">${(finance?.transactions || []).length} Records</div>
+              </div>
+            </div>
+            ${(finance?.savingsGoals || []).length > 0 ? `
+              <table>
+                <thead>
+                  <tr>
+                    <th>Savings Goal</th>
+                    <th>Saved</th>
+                    <th>Target Amount</th>
+                    <th>Progress</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${(finance.savingsGoals).map(g => {
+                    const pct = Math.round((g.currentAmount / g.targetAmount) * 100);
+                    return `
+                      <tr>
+                        <td><strong>${g.title}</strong></td>
+                        <td>${currency}${g.currentAmount.toLocaleString('en-IN')}</td>
+                        <td>${currency}${g.targetAmount.toLocaleString('en-IN')}</td>
+                        <td><strong>${pct}%</strong></td>
+                      </tr>
+                    `;
+                  }).join('')}
+                </tbody>
+              </table>
+            ` : ''}
+          </div>
+
+          <!-- 6. Books & Reading Hub -->
+          ${(books || []).length > 0 ? `
+            <div class="section">
+              <div class="section-title">📚 Reading Hub</div>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Book Title</th>
+                    <th>Author</th>
+                    <th>Progress</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${(books).map(b => `
+                    <tr>
+                      <td><strong>${b.title}</strong></td>
+                      <td>${b.author || 'N/A'}</td>
+                      <td>${b.currentPage}/${b.totalPages} pages</td>
+                      <td><span class="badge ${b.status === 'Completed' ? 'badge-success' : 'badge-pending'}">${b.status}</span></td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          ` : ''}
+
+          <div class="footer">
+            AURA Life OS — Encrypted & Stored Locally in Browser. Saved on ${dateStr}.
+          </div>
+
+          <script>
+            window.onload = function() {
+              setTimeout(function() {
+                window.print();
+              }, 400);
+            };
+          </script>
+        </body>
+      </html>
+    `;
+
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+    showToast('Exporting PDF backup report... 📄', 'success');
+  };
+
   // Export JSON Backup
   const exportAllData = () => {
     const stateObj = {
@@ -716,7 +1031,8 @@ export function AppProvider({ children }) {
         decrementDay,
         resetDay,
         resetToSampleData,
-        exportAllData
+        exportAllData,
+        exportAllDataPdf
       }}
     >
       {children}

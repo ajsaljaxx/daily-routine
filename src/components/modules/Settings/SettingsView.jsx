@@ -12,11 +12,12 @@ import {
   Save,
   CheckCircle2,
   Shield,
-  Sparkles
+  Sparkles,
+  FileText
 } from 'lucide-react';
 
 export default function SettingsView() {
-  const { userProfile, setUserProfile, exportAllData, resetToSampleData, showToast } = useApp();
+  const { userProfile, setUserProfile, exportAllDataPdf, resetToSampleData, showToast } = useApp();
 
   const [name, setName] = useState(userProfile?.name || 'Ajsal');
   const [tagline, setTagline] = useState(userProfile?.tagline || 'Building discipline & lifelong growth');
@@ -282,16 +283,16 @@ export default function SettingsView() {
       {/* 4. Data Management & Backups */}
       <div className="aura-card">
         <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '14px', color: 'var(--text-primary)' }}>
-          Data Portability & Backups
+          Data Portability & PDF Backups
         </h3>
         <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', marginBottom: '18px' }}>
-          All your personal logs, prayers, tasks, finances, and journal entries are safely stored in your browser. You can export a JSON backup at any time.
+          All your personal logs, prayers, tasks, finances, and journal entries are safely stored in your browser. You can export a comprehensive PDF backup report at any time.
         </p>
 
         <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-          <button onClick={exportAllData} className="btn btn-secondary" style={{ gap: '8px' }}>
-            <Download size={16} />
-            <span>Export Backup (JSON)</span>
+          <button onClick={exportAllDataPdf} className="btn btn-primary" style={{ gap: '8px' }}>
+            <FileText size={16} />
+            <span>Export Backup (PDF)</span>
           </button>
 
           <button
