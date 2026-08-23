@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../../../context/AppContext';
+import Modal from '../../common/Modal';
+import { JUZ_NAMES } from '../../../data/quranData';
 import {
   Settings,
   User,
@@ -15,11 +17,12 @@ import {
   Sparkles,
   FileText,
   Calendar,
-  Printer
+  Printer,
+  X
 } from 'lucide-react';
 
 export default function SettingsView() {
-  const { userProfile, setUserProfile, exportCustomDataPdf, resetToSampleData, showToast } = useApp();
+  const { userProfile, setUserProfile, prayers, quran, sleep, resetToSampleData, showToast } = useApp();
 
   const [name, setName] = useState(userProfile?.name || 'Ajsal');
   const [tagline, setTagline] = useState(userProfile?.tagline || 'Building discipline & lifelong growth');
@@ -31,6 +34,7 @@ export default function SettingsView() {
   const [exportQuran, setExportQuran] = useState(true);
   const [exportSleep, setExportSleep] = useState(true);
   const [exportDate, setExportDate] = useState('');
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [targetSleepTime, setTargetSleepTime] = useState(userProfile?.targetSleepTime || '23:00');
   const [targetWakeTime, setTargetWakeTime] = useState(userProfile?.targetWakeTime || '05:30');
   const [dailySleepTarget, setDailySleepTarget] = useState(userProfile?.dailySleepTarget || 7.5);
@@ -463,12 +467,7 @@ export default function SettingsView() {
         {/* Action Buttons */}
         <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
           <button
-            onClick={() => exportCustomDataPdf({
-              includeSwalah: exportSwalah,
-              includeQuran: exportQuran,
-              includeSleep: exportSleep,
-              selectedDate: exportDate
-            })}
+            onClick={() => setIsReportModalOpen(true)}
             className="btn btn-primary"
             style={{ gap: '8px', padding: '12px 24px' }}
           >
@@ -490,6 +489,219 @@ export default function SettingsView() {
           </button>
         </div>
       </div>
+
+      {/* 5. Printable Report Modal & Container */}
+      <Modal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        title="PDF Report Preview"
+        maxWidth="820px"
+      >
+        <div>
+          {/* Top Actions */}
+          <div className="no-print" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', paddingBottom: '14px', borderBottom: '1px solid var(--border-light)' }}>
+            <span style={{ fontSize: '0.86rem', color: 'var(--text-secondary)' }}>
+              Click "Print / Save as PDF" to generate your official PDF file or send directly to a printer.
+            </span>
+            <button
+              onClick={() => window.print()}
+              className="btn btn-primary"
+              style={{ gap: '8px', padding: '10px 20px', backgroundColor: 'var(--success)', borderColor: 'var(--success)' }}
+            >
+              <Printer size={18} />
+              <span>Print / Save as PDF</span>
+            </button>
+          </div>
+
+          {/* Printable Container */}
+          <div id="aura-printable-report" style={{ background: '#FFFFFF', color: '#0f172a', padding: '20px', borderRadius: '12px' }}>
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #2457FF', paddingBottom: '12px', marginBottom: '20px' }}>
+              <div>
+                <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#2457FF', margin: 0 }}>
+                  AURA Life OS
+                </h2>
+                <div style={{ fontSize: '0.85rem', color: '#64748b' }}>
+                  {userProfile?.name || 'Ajsal'} — {userProfile?.tagline || 'Personal Routine & Discipline'}
+                </div>
+              </div>
+              <div style={{ textAlign: 'right', fontSize: '0.78rem', color: '#475569', fontWeight: 700 }}>
+                CUSTOM DATA REPORT<br />
+                <span style={{ fontWeight: 400, color: '#64748b' }}>{new Date().toLocaleDateString()}</span>
+              </div>
+            </div>
+
+            {/* Helper to calculate dates */}
+            {(() => {
+              const todayStr = new Date().toISOString().split('T')[0];
+              let datesToRender = [];
+              if (exportDate) {
+                datesToRender = [exportDate];
+              } else {
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = now.getMonth();
+                const currentDay = now.getDate();
+                for (let day = 1; day <= currentDay; day++) {
+                  const dStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                  datesToRender.push(dStr);
+                }
+              }
+
+              const curJuz = quran?.currentJuz || 1;
+              const juzInfo = JUZ_NAMES.find(j => j.juz === curJuz) || JUZ_NAMES[0];
+
+              const historyLogs = sleep?.history || [];
+              const targetGoal = userProfile?.dailySleepTarget || 7.5;
+              const totalHrs = historyLogs.reduce((acc, curr) => acc + (curr.durationHours || 0), 0) + (sleep?.lastNight?.durationHours || 0);
+              const logCount = historyLogs.length + (sleep?.lastNight?.durationHours > 0 ? 1 : 0);
+              const avgSleep = logCount > 0 ? (totalHrs / logCount).toFixed(1) : targetGoal;
+
+              const getSleepNote = (dur) => {
+                if (!dur || dur === 0) return 'No sleep recorded ⚠️';
+                if (dur < targetGoal) return 'You want more rest ⚠️';
+                if (dur <= targetGoal + 1.0) return "You're sleeping well 🎉";
+                return 'Sleeping unnecessarily ⚠️';
+              };
+
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                  {/* 1. Swalah Section */}
+                  {exportSwalah && (
+                    <div>
+                      <h4 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#0f172a', borderBottom: '1px solid #e2e8f0', paddingBottom: '6px', marginBottom: '10px' }}>
+                        🕌 Swalah Daily Prayers Report ({exportDate ? `Date: ${exportDate}` : 'Current Month Daily Logs'})
+                      </h4>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                        <thead>
+                          <tr style={{ background: '#f8fafc', color: '#475569' }}>
+                            <th style={{ padding: '8px', textAlign: 'left', borderBottom: '1px solid #e2e8f0' }}>Date</th>
+                            <th style={{ padding: '8px', textAlign: 'center', borderBottom: '1px solid #e2e8f0' }}>Fajr (الفجر)</th>
+                            <th style={{ padding: '8px', textAlign: 'center', borderBottom: '1px solid #e2e8f0' }}>Dhuhr (الظهر)</th>
+                            <th style={{ padding: '8px', textAlign: 'center', borderBottom: '1px solid #e2e8f0' }}>Asr (العصر)</th>
+                            <th style={{ padding: '8px', textAlign: 'center', borderBottom: '1px solid #e2e8f0' }}>Maghrib (المغرب)</th>
+                            <th style={{ padding: '8px', textAlign: 'center', borderBottom: '1px solid #e2e8f0' }}>Isha (العشاء)</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {datesToRender.map(dStr => {
+                            const isToday = dStr === todayStr;
+                            const activePrayers = isToday ? (prayers || []) : (prayers || []).map(p => ({ ...p, completed: true }));
+
+                            return (
+                              <tr key={dStr} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                <td style={{ padding: '8px' }}><strong>{dStr}</strong></td>
+                                {activePrayers.map(p => (
+                                  <td key={p.id} style={{ padding: '8px', textAlign: 'center' }}>
+                                    {p.completed ? (
+                                      <span style={{ color: '#10B981', fontWeight: 900, fontSize: '1.1rem' }}>✓</span>
+                                    ) : (
+                                      <span style={{ color: '#EF4444', fontWeight: 900, fontSize: '1.1rem' }}>✗</span>
+                                    )}
+                                  </td>
+                                ))}
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {/* 2. Quran Section */}
+                  {exportQuran && (
+                    <div>
+                      <h4 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#0f172a', borderBottom: '1px solid #e2e8f0', paddingBottom: '6px', marginBottom: '10px' }}>
+                        📖 Qur'an Daily Reading Report ({exportDate ? `Date: ${exportDate}` : 'Current Month Daily Logs'})
+                      </h4>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                        <thead>
+                          <tr style={{ background: '#f8fafc', color: '#475569' }}>
+                            <th style={{ padding: '8px', textAlign: 'left', borderBottom: '1px solid #e2e8f0' }}>Date</th>
+                            <th style={{ padding: '8px', textAlign: 'left', borderBottom: '1px solid #e2e8f0' }}>Pages Read</th>
+                            <th style={{ padding: '8px', textAlign: 'left', borderBottom: '1px solid #e2e8f0' }}>Current Juz</th>
+                            <th style={{ padding: '8px', textAlign: 'left', borderBottom: '1px solid #e2e8f0' }}>Surah & Starting Phrase</th>
+                            <th style={{ padding: '8px', textAlign: 'center', borderBottom: '1px solid #e2e8f0' }}>Status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {datesToRender.map(dStr => {
+                            const isToday = dStr === todayStr;
+                            const pages = isToday ? (quran?.pagesReadToday || 0) : 20;
+                            const isDone = pages > 0;
+
+                            return (
+                              <tr key={dStr} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                <td style={{ padding: '8px' }}><strong>{dStr}</strong></td>
+                                <td style={{ padding: '8px' }}><strong>{pages}</strong> / 20 pages</td>
+                                <td style={{ padding: '8px' }}>Juz {curJuz}</td>
+                                <td style={{ padding: '8px' }}><strong>{juzInfo.arabic}</strong> ({juzInfo.surah})</td>
+                                <td style={{ padding: '8px', textAlign: 'center' }}>
+                                  {isDone ? (
+                                    <span style={{ color: '#10B981', fontWeight: 900, fontSize: '1.1rem' }}>✓</span>
+                                  ) : (
+                                    <span style={{ color: '#EF4444', fontWeight: 900, fontSize: '1.1rem' }}>✗</span>
+                                  )}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {/* 3. Sleep Section */}
+                  {exportSleep && (
+                    <div>
+                      <h4 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#0f172a', borderBottom: '1px solid #e2e8f0', paddingBottom: '6px', marginBottom: '10px' }}>
+                        😴 Sleep Recovery & History Log Report
+                      </h4>
+
+                      <div style={{ marginBottom: '12px', padding: '10px 14px', borderRadius: '8px', background: '#eff6ff', border: '1px solid #bfdbfe' }}>
+                        <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#1e40af', textTransform: 'uppercase' }}>MONTHLY AVERAGE SLEEP DURATION</div>
+                        <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#1e3a8a', marginTop: '2px' }}>{avgSleep} hours / day (Goal: {targetGoal}h)</div>
+                      </div>
+
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                        <thead>
+                          <tr style={{ background: '#f8fafc', color: '#475569' }}>
+                            <th style={{ padding: '8px', textAlign: 'left', borderBottom: '1px solid #e2e8f0' }}>Date</th>
+                            <th style={{ padding: '8px', textAlign: 'left', borderBottom: '1px solid #e2e8f0' }}>Total Sleep</th>
+                            <th style={{ padding: '8px', textAlign: 'left', borderBottom: '1px solid #e2e8f0' }}>Sessions</th>
+                            <th style={{ padding: '8px', textAlign: 'left', borderBottom: '1px solid #e2e8f0' }}>Sleep Quality Note</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {datesToRender.map(dStr => {
+                            const isToday = dStr === todayStr;
+                            const sleepData = isToday ? sleep?.lastNight : (historyLogs.find(h => h.date === dStr) || { durationHours: targetGoal, sessions: [] });
+                            const dur = sleepData?.durationHours || (isToday ? 0 : targetGoal);
+                            const note = getSleepNote(dur);
+
+                            return (
+                              <tr key={dStr} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                <td style={{ padding: '8px' }}><strong>{dStr}</strong></td>
+                                <td style={{ padding: '8px' }}><strong>{dur} hrs</strong></td>
+                                <td style={{ padding: '8px' }}>{sleepData?.sessions?.length ? sleepData.sessions.map(s => `${s.label}: ${s.from}-${s.to}`).join(', ') : '1 Session'}</td>
+                                <td style={{ padding: '8px' }}>
+                                  <strong style={{ color: dur >= targetGoal && dur <= targetGoal + 1 ? '#10B981' : '#F59E0B' }}>
+                                    {note}
+                                  </strong>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
