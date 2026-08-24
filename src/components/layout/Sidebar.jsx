@@ -57,17 +57,18 @@ export default function Sidebar() {
           height: '40px',
           borderRadius: '12px',
           overflow: 'hidden',
-          boxShadow: '0 4px 14px rgba(36, 87, 255, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.15)',
+          boxShadow: '0 2px 8px rgba(2, 0, 13, 0.08)',
+          border: '1px solid var(--border-subtle)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: '#0d172a',
+          background: '#FFFFFF',
           flexShrink: 0
         }}>
           <img 
-            src="/aura-logo.jpg" 
+            src="/aura-logo.svg" 
             alt="AURA Logo" 
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+            style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '2px' }} 
           />
         </div>
         <div>

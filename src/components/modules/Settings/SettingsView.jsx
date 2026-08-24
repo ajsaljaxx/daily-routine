@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 
 export default function SettingsView() {
-  const { userProfile, setUserProfile, prayers, quran, sleep, resetToSampleData, showToast } = useApp();
+  const { userProfile, setUserProfile, prayers, quran, sleep, resetToSampleData, resetAndArchiveNow, dailyHistory, showToast } = useApp();
 
   const [name, setName] = useState(userProfile?.name || 'Ajsal');
   const [tagline, setTagline] = useState(userProfile?.tagline || 'Building discipline & lifelong growth');
@@ -39,6 +39,8 @@ export default function SettingsView() {
   const [targetWakeTime, setTargetWakeTime] = useState(userProfile?.targetWakeTime || '05:30');
   const [dailySleepTarget, setDailySleepTarget] = useState(userProfile?.dailySleepTarget || 7.5);
   const [dailyWaterTarget, setDailyWaterTarget] = useState(userProfile?.dailyWaterTarget || 8);
+  const [dailyResetTime, setDailyResetTime] = useState(userProfile?.dailyResetTime || '12:00');
+  const [appLayoutMode, setAppLayoutMode] = useState(userProfile?.appLayoutMode || 'auto');
   const [aiProvider, setAiProvider] = useState(userProfile?.aiProvider || 'gemini');
   const [aiApiKey, setAiApiKey] = useState(userProfile?.aiApiKey || '');
   const [notificationsEnabled, setNotificationsEnabled] = useState(userProfile?.notificationsEnabled ?? true);
@@ -96,10 +98,7 @@ export default function SettingsView() {
         if (successModel) {
           setTestResult({ success: true, message: `Google Gemini (${successModel}) Connected & Working Live! ⚡` });
         } else {
-          if (!aiApiKey.trim().startsWith('AIzaSy')) {
-            throw new Error('Invalid key format. Google Gemini API keys start with "AIzaSy...". Click "Get Free Gemini Key →" above to get one!');
-          }
-          throw new Error('Google Gemini API Key rejected. Please check or regenerate your key at aistudio.google.com');
+          throw new Error(lastErr || 'Google Gemini API Key rejected. Please check key or select Built-in AI Engine.');
         }
       } else if (aiProvider === 'openai') {
         const res = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -140,6 +139,8 @@ export default function SettingsView() {
       targetWakeTime,
       dailySleepTarget: Number(dailySleepTarget),
       dailyWaterTarget: Number(dailyWaterTarget),
+      dailyResetTime,
+      appLayoutMode,
       aiProvider,
       aiApiKey: aiApiKey.trim(),
       notificationsEnabled
@@ -288,109 +289,67 @@ export default function SettingsView() {
           </div>
         </div>
 
-        {/* 4. AI Assistant Engine & API Setup */}
+        {/* 3b. Daily Auto-Reset & Data Archiving Settings */}
         <div className="aura-card" style={{ marginBottom: '24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <Sparkles size={20} color="var(--primary-royal)" />
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>
-                AURA AI Engine & Model Setup
-              </h3>
-            </div>
-            <span style={{
-              fontSize: '0.72rem',
-              fontWeight: 700,
-              padding: '3px 9px',
-              borderRadius: 'var(--radius-full)',
-              background: aiApiKey ? 'var(--success-bg)' : 'var(--primary-soft)',
-              color: aiApiKey ? 'var(--success)' : 'var(--primary-royal)'
-            }}>
-              {aiApiKey ? 'Live LLM Active' : 'Built-in Engine Active'}
-            </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+            <RotateCcw size={20} color="var(--primary-royal)" />
+            <h3 style={{ fontSize: '1.2rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>
+              Daily Auto-Reset & Data Archiving
+            </h3>
           </div>
 
-          <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', marginBottom: '16px' }}>
-            Power AURA with state-of-the-art Generative AI models. Your API key is stored safely in your browser.
+          <p style={{ fontSize: '0.86rem', color: 'var(--text-secondary)', marginBottom: '16px' }}>
+            Choose when all daily trackers (Habits, Swalah, Qur'an, Sleep, Water) automatically reset and store that day's completed progress into your local history archive.
           </p>
 
-          <div className="form-group">
-            <label>AI Provider Model</label>
-            <select value={aiProvider} onChange={e => setAiProvider(e.target.value)}>
-              <option value="gemini">Google Gemini 1.5 / 2.0 (Recommended — Free & Fast)</option>
-              <option value="groq">Groq Cloud (Llama-3.3 70B — 100% Free & Superfast)</option>
-              <option value="openai">OpenAI GPT-4o-mini</option>
-              <option value="builtin">Built-in Offline Companion Engine</option>
+          <div className="form-group" style={{ marginBottom: '16px' }}>
+            <label style={{ fontWeight: 700 }}>Daily Reset Time Threshold</label>
+            <select
+              value={dailyResetTime}
+              onChange={e => setDailyResetTime(e.target.value)}
+              style={{ fontSize: '0.9rem', fontWeight: 600 }}
+            >
+              <option value="12:00">12:00 PM (After Noon — Default)</option>
+              <option value="00:00">12:00 AM (Midnight Rollover)</option>
+              <option value="06:00">06:00 AM (Early Morning)</option>
+              <option value="18:00">06:00 PM (Evening)</option>
             </select>
           </div>
 
-          {aiProvider !== 'builtin' && aiProvider !== 'ollama' && (
-            <div className="form-group">
-              <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span>{aiProvider === 'gemini' ? 'Google Gemini API Key' : 'OpenAI API Key'}</span>
-                {aiProvider === 'gemini' && (
-                  <a
-                    href="https://aistudio.google.com/app/apikey"
-                    target="_blank"
-                    rel="noreferrer"
-                    style={{ fontSize: '0.74rem', color: 'var(--primary-royal)', textDecoration: 'underline' }}
-                  >
-                    Get Free Gemini Key →
-                  </a>
-                )}
-              </label>
-              <input
-                type="password"
-                placeholder={aiProvider === 'gemini' ? "AIzaSy..." : "sk-..."}
-                value={aiApiKey}
-                onChange={e => setAiApiKey(e.target.value)}
-                autoComplete="off"
-              />
-              <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '2px', display: 'block' }}>
-                {aiProvider === 'gemini'
-                  ? "Get your free API key at aistudio.google.com and paste it here."
-                  : "Enter your OpenAI platform secret key."}
-              </span>
+          <div style={{
+            padding: '12px 16px',
+            borderRadius: 'var(--radius-sm)',
+            background: 'var(--bg-secondary)',
+            border: '1px solid var(--border-light)',
+            marginBottom: '16px',
+            fontSize: '0.82rem',
+            color: 'var(--text-secondary)'
+          }}>
+            ⚡ <strong>Auto-Reset Rule:</strong> Every day after <strong>{dailyResetTime === '12:00' ? '12:00 PM (Noon)' : dailyResetTime}</strong>, all daily tracker items reset to uncompleted for the new day, and the previous day's data is safely archived in local storage history.
+          </div>
 
-              {/* Test Connection Button & Result */}
-              <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-                <button
-                  type="button"
-                  onClick={handleTestConnection}
-                  disabled={isTesting}
-                  className="btn btn-secondary btn-sm"
-                  style={{ fontSize: '0.78rem', fontWeight: 600 }}
-                >
-                  {isTesting ? 'Testing Connection...' : '⚡ Test API Key Connection'}
-                </button>
-
-                {testResult && (
-                  <span style={{
-                    fontSize: '0.78rem',
-                    fontWeight: 700,
-                    padding: '4px 10px',
-                    borderRadius: 'var(--radius-sm)',
-                    background: testResult.success ? 'var(--success-bg)' : 'var(--danger-bg)',
-                    color: testResult.success ? 'var(--success)' : 'var(--danger)',
-                    border: `1px solid ${testResult.success ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`
-                  }}>
-                    {testResult.success ? '✅ ' : '❌ '}{testResult.message}
-                  </span>
-                )}
-              </div>
-            </div>
-          )}
-
-          {aiProvider === 'ollama' && (
-            <div style={{ padding: '12px', borderRadius: 'var(--radius-sm)', background: 'var(--bg-secondary)', fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
-              Make sure Ollama is running locally on <code>http://localhost:11434</code> with <code>ollama run llama3.2</code>.
-            </div>
-          )}
+          <button
+            type="button"
+            onClick={() => {
+              if (window.confirm("Archive today's completed progress and reset daily trackers to clean 0 state now?")) {
+                resetAndArchiveNow();
+                showToast("Day data archived & daily trackers reset!", "success");
+              }
+            }}
+            className="btn btn-secondary btn-sm"
+            style={{ gap: '6px', fontSize: '0.82rem', fontWeight: 700 }}
+          >
+            <RotateCcw size={15} />
+            <span>Store Today's Data & Reset Trackers Now</span>
+          </button>
         </div>
+
+
 
         {/* Save Button */}
         <button type="submit" className="btn btn-primary btn-lg" style={{ width: '100%', marginBottom: '28px', gap: '8px' }}>
           <Save size={18} />
-          <span>Save Preferences & AI Keys</span>
+          <span>Save Profile & Routine Preferences</span>
         </button>
       </form>
 

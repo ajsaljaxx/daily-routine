@@ -8,6 +8,8 @@ export const INITIAL_USER_PROFILE = {
   targetWakeTime: "05:30",
   dailySleepTarget: 7.5, // in hours
   dailyWaterTarget: 8, // in glasses (250ml each)
+  dailyResetTime: "12:00", // 12:00 PM daily reset time
+  appLayoutMode: 'auto', // 'auto' | 'app' | 'website'
   aiProvider: 'gemini', // 'gemini' | 'openai' | 'ollama' | 'builtin'
   aiApiKey: (import.meta.env.VITE_GEMINI_API_KEY || '').trim(),
   notificationsEnabled: true
@@ -123,7 +125,7 @@ export const INITIAL_TASKS = [
     date: '2026-08-18',
     time: '02:30 PM',
     notes: 'Verify component reusability and CSS custom properties token integration.',
-    completed: true,
+    completed: false,
     recurring: 'None'
   },
   {

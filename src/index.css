@@ -3,66 +3,66 @@
    ========================================================================== */
 
 :root {
-  /* Onyx (#020202) & Candy Blue (#B2D5E5) Brand Theme Tokens */
-  --primary-deep: #16466D;
-  --primary-royal: #3A92D8;
-  --primary-quantum: #56A9EB;
-  --primary-accent: #B2D5E5;
-  --primary-lavender: #82BEE0;
-  --primary-ice: #B2D5E5;
-  --primary-soft: rgba(178, 213, 229, 0.15);
-  --primary-glow: rgba(58, 146, 216, 0.22);
-  --primary-glow-strong: rgba(58, 146, 216, 0.45);
+  /* Blue Neutral Color Palette Tokens (#02000D, #07203F, #EBDED4, #D9AA90, #A65E46) */
+  --primary-deep: #07203F;            /* Deep Rich Navy Blue */
+  --primary-royal: #07203F;           /* Deep Rich Navy Blue */
+  --primary-quantum: #A65E46;         /* Warm Terracotta Copper */
+  --primary-accent: #D9AA90;          /* Soft Tan Rose Sand */
+  --primary-lavender: #D9AA90;        /* Soft Tan Rose Sand */
+  --primary-ice: #EBDED4;             /* Soft Warm Cream Neutral */
+  --primary-soft: rgba(217, 170, 144, 0.22);
+  --primary-glow: rgba(7, 32, 63, 0.18);
+  --primary-glow-strong: rgba(7, 32, 63, 0.40);
 
   /* Backgrounds & Surfaces (Light Mode) */
-  --bg-page: #EEF5F9;
+  --bg-page: #F7F3EF;                 /* Ultra-soft Tinted Warm Cream Page BG */
   --bg-surface: #FFFFFF;
   --bg-surface-elevated: #FFFFFF;
-  --bg-surface-translucent: rgba(255, 255, 255, 0.90);
-  --bg-warm-cream: #F2F8FC;
-  --bg-secondary: #E3EEF5;
-  --bg-tertiary: #D4E4EE;
+  --bg-surface-translucent: rgba(255, 255, 255, 0.92);
+  --bg-warm-cream: #EBDED4;           /* Soft Warm Cream Neutral */
+  --bg-secondary: #F2E9E2;           /* Soft Neutral Tint */
+  --bg-tertiary: #E5D7CC;            /* Medium Neutral Tint */
   
   /* Text & Content */
-  --text-primary: #020202;
-  --text-secondary: #2B4E68;
-  --text-muted: #6B8B9E;
+  --text-primary: #02000D;            /* Darkest Midnight Navy Black */
+  --text-secondary: #07203F;          /* Deep Rich Navy Blue */
+  --text-muted: #8C6D5B;              /* Harmonious Muted Tan Brown */
   --text-inverse: #FFFFFF;
 
   /* Borders & Dividers */
-  --border-subtle: rgba(178, 213, 229, 0.35);
-  --border-light: #D4E5EE;
-  --border-medium: #B2D5E5;
-  --border-focus: #3A92D8;
+  --border-subtle: rgba(217, 170, 144, 0.35);
+  --border-light: #E5D7CC;
+  --border-medium: #D9AA90;
+  --border-focus: #07203F;
 
   /* Semantic Accents */
   --success: #10B981;
   --success-bg: rgba(16, 185, 129, 0.12);
-  --warning: #F59E0B;
-  --warning-bg: rgba(245, 158, 11, 0.12);
-  --danger: #EF4444;
-  --danger-bg: rgba(239, 68, 68, 0.12);
-  --info: #3A92D8;
-  --info-bg: rgba(58, 146, 216, 0.12);
+  --warning: #A65E46;                 /* Warm Terracotta Copper Accent */
+  --warning-bg: rgba(166, 94, 70, 0.14);
+  --danger: #C0392B;
+  --danger-bg: rgba(192, 57, 43, 0.12);
+  --info: #07203F;
+  --info-bg: rgba(7, 32, 63, 0.12);
 
-  /* Gradients (Onyx #020202 to Candy Blue #B2D5E5) */
-  --grad-primary: linear-gradient(135deg, #1C5A8A 0%, #3A92D8 50%, #B2D5E5 100%);
-  --grad-royal: linear-gradient(135deg, #2E85CD 0%, #5BB2F2 100%);
-  --grad-ice: linear-gradient(135deg, #B2D5E5 0%, #DCEFF7 100%);
-  --grad-sunset: linear-gradient(135deg, #F97316 0%, #FBBF24 100%);
-  --grad-emerald: linear-gradient(135deg, #059669 0%, #34D399 100%);
-  --grad-card-hero: linear-gradient(135deg, #020202 0%, #0B1928 55%, #1F4A73 100%);
-  --grad-card-warm: linear-gradient(135deg, #F2F8FC 0%, #E6F3FA 100%);
-  --grad-subtle-glow: radial-gradient(circle at 50% 0%, rgba(178, 213, 229, 0.25), transparent 70%);
+  /* Gradients based on exact palette */
+  --grad-primary: linear-gradient(135deg, #07203F 0%, #A65E46 50%, #D9AA90 100%);
+  --grad-royal: linear-gradient(135deg, #07203F 0%, #173863 100%);
+  --grad-ice: linear-gradient(135deg, #EBDED4 0%, #F5EDE6 100%);
+  --grad-sunset: linear-gradient(135deg, #A65E46 0%, #D9AA90 100%);
+  --grad-emerald: linear-gradient(135deg, #07203F 0%, #10B981 100%);
+  --grad-card-hero: linear-gradient(135deg, #02000D 0%, #07203F 55%, #A65E46 100%);
+  --grad-card-warm: linear-gradient(135deg, #EBDED4 0%, #F5EDE6 100%);
+  --grad-subtle-glow: radial-gradient(circle at 50% 0%, rgba(217, 170, 144, 0.3), transparent 70%);
 
   /* Shadows */
-  --shadow-sm: 0 2px 8px rgba(2, 2, 2, 0.05);
-  --shadow-md: 0 6px 20px rgba(2, 2, 2, 0.08);
-  --shadow-lg: 0 12px 36px rgba(2, 2, 2, 0.12);
-  --shadow-xl: 0 20px 48px rgba(58, 146, 216, 0.22);
-  --shadow-purple: 0 8px 24px rgba(58, 146, 216, 0.30);
-  --shadow-primary: 0 8px 24px rgba(58, 146, 216, 0.30);
-  --shadow-ice: 0 8px 24px rgba(178, 213, 229, 0.40);
+  --shadow-sm: 0 2px 8px rgba(2, 0, 13, 0.06);
+  --shadow-md: 0 6px 20px rgba(2, 0, 13, 0.09);
+  --shadow-lg: 0 12px 36px rgba(2, 0, 13, 0.13);
+  --shadow-xl: 0 20px 48px rgba(7, 32, 63, 0.22);
+  --shadow-purple: 0 8px 24px rgba(7, 32, 63, 0.30);
+  --shadow-primary: 0 8px 24px rgba(7, 32, 63, 0.30);
+  --shadow-ice: 0 8px 24px rgba(235, 222, 212, 0.50);
 
   /* Typography */
   --font-primary: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
@@ -87,35 +87,35 @@
 }
 
 /* ==========================================================================
-   DARK MODE (Onyx #020202 & Candy Blue #B2D5E5)
+   DARK MODE (Blue Neutral Palette)
    ========================================================================== */
 
 [data-theme="dark"] {
-  --bg-page: #020202;
-  --bg-surface: #0B1117;
-  --bg-surface-elevated: #111A23;
-  --bg-surface-translucent: rgba(11, 17, 23, 0.90);
-  --bg-warm-cream: #0E1620;
-  --bg-secondary: #141F2B;
-  --bg-tertiary: #1C2B3C;
+  --bg-page: #02000D;                 /* Midnight Navy Black */
+  --bg-surface: #07203F;              /* Deep Rich Navy Blue */
+  --bg-surface-elevated: #0C284D;
+  --bg-surface-translucent: rgba(7, 32, 63, 0.92);
+  --bg-warm-cream: #123157;
+  --bg-secondary: #0C284D;
+  --bg-tertiary: #163B6B;
 
-  --text-primary: #FFFFFF;
-  --text-secondary: #B2D5E5;
-  --text-muted: #6F8B9E;
-  --text-inverse: #020202;
+  --text-primary: #F7F3EF;
+  --text-secondary: #EBDED4;          /* Soft Warm Cream */
+  --text-muted: #D9AA90;              /* Soft Tan Rose Sand */
+  --text-inverse: #02000D;
 
-  --border-subtle: rgba(178, 213, 229, 0.15);
-  --border-light: #1A2837;
-  --border-medium: #283C52;
-  --border-focus: #3A92D8;
+  --border-subtle: rgba(217, 170, 144, 0.25);
+  --border-light: #12345F;
+  --border-medium: #1C457A;
+  --border-focus: #D9AA90;
 
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.5);
   --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.65);
   --shadow-lg: 0 12px 36px rgba(0, 0, 0, 0.8);
-  --shadow-purple: 0 8px 28px rgba(58, 146, 216, 0.35);
-  --shadow-primary: 0 8px 28px rgba(58, 146, 216, 0.35);
+  --shadow-purple: 0 8px 28px rgba(7, 32, 63, 0.4);
+  --shadow-primary: 0 8px 28px rgba(7, 32, 63, 0.4);
   
-  --grad-card-hero: linear-gradient(135deg, #020202 0%, #091522 50%, #163E63 100%);
+  --grad-card-hero: linear-gradient(135deg, #02000D 0%, #07203F 50%, #A65E46 100%);
 }
 
 /* ==========================================================================
@@ -925,4 +925,45 @@ textarea:focus {
   .no-print {
     display: none !important;
   }
+}
+
+/* ==========================================================================
+   EXPLICIT APP MODE VS WEBSITE MODE STYLES
+   ========================================================================== */
+.app-container[data-layout-mode="app"] .sidebar-aside {
+  display: none !important;
+}
+
+.app-container[data-layout-mode="app"] .main-content-wrapper {
+  margin-left: 0 !important;
+  width: 100% !important;
+  max-width: 680px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  padding-bottom: 84px !important;
+}
+
+.app-container[data-layout-mode="app"] .mobile-bottom-nav {
+  display: flex !important;
+}
+
+.app-container[data-layout-mode="app"] .grid-dashboard-top,
+.app-container[data-layout-mode="app"] .grid-dashboard-row,
+.app-container[data-layout-mode="app"] .grid-2-col,
+.app-container[data-layout-mode="app"] .grid-3-col {
+  grid-template-columns: 1fr !important;
+}
+
+.app-container[data-layout-mode="website"] .sidebar-aside {
+  display: flex !important;
+}
+
+.app-container[data-layout-mode="website"] .main-content-wrapper {
+  margin-left: var(--sidebar-width) !important;
+  width: calc(100% - var(--sidebar-width)) !important;
+  max-width: 100% !important;
+}
+
+.app-container[data-layout-mode="website"] .mobile-bottom-nav {
+  display: none !important;
 }

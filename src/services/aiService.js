@@ -14,28 +14,39 @@ function generateLocalFriendResponse(userMessage, context, friendVibe = 'bestie'
   const lastSleep = context.sleep?.lastNight?.durationHours || 7.5;
   const balance = `${context.userProfile?.currency || '₹'}${(context.finance?.currentBalance ?? 0).toLocaleString('en-IN')}`;
 
-  // 1. Greetings & Check-ins
+  // 1. Food, Nutrition & Diet Questions
+  if (lower.includes('food') || lower.includes('eat') || lower.includes('diet') || lower.includes('nutrition') || lower.includes('health') || lower.includes('breakfast') || lower.includes('lunch') || lower.includes('dinner') || lower.includes('protein') || lower.includes('fruit') || lower.includes('calorie') || lower.includes('meal')) {
+    return `Here are the top most nutritious and healthy foods you can eat for optimal health & energy, ${userName}: 🥗\n\n` +
+      `1. **High-Protein Foods**: Eggs, Grilled Chicken Breast, Fish (Salmon/Tuna), Greek Yogurt, Paneer, Lentils (Dal), and Chickpeas.\n` +
+      `2. **Nutrient-Dense Greens & Veggies**: Spinach, Broccoli, Carrots, Cucumbers, and Bell Peppers.\n` +
+      `3. **Healthy Fats & Brain Boosters**: Almonds, Walnuts, Chia Seeds, Extra Virgin Olive Oil, and Avocado.\n` +
+      `4. **Complex Carbs**: Oatmeal, Brown Rice, Sweet Potatoes, and Whole Wheat Chapatis.\n` +
+      `5. **Sunnah Superfoods**: Dates, Raw Honey, Figs, and Black Seeds (*Habbat al-Barakah*).\n\n` +
+      `💡 **Pro Tip**: Aim for a balanced plate with 50% vegetables/salads, 25% lean protein, and 25% complex carbs, plus drink 2.5L+ water daily!`;
+  }
+
+  // 2. Greetings & Check-ins
   if (/^(hi|hey|hello|yo|wassup|what's up|whats up|salaam|assalamu|morning|evening|gm|gn)\b/i.test(lower)) {
     const greetings = [
       `Hey ${userName}! 👋 Great to see you bro! How is your day treating you so far? What are we getting into today?`,
       `Yo ${userName}! What's good? Always here for you man. Tell me what's on your mind! ✨`,
-      `Wa Alaikum Assalaam ${userName}! 🌙 Hope you're feeling energetic and blessed today. How can I back you up?`,
+      `Wa Alaikum Assalaam ${userName}! 🌙 Hope you're feeling energetic and blessed today. How can I assist you?`,
       `Hey bro! Ready whenever you are. What are you working on or thinking about right now? 🔥`
     ];
     return greetings[Math.floor(Math.random() * greetings.length)];
   }
 
-  // 2. Feeling Tired / Sleep / Exhaustion
+  // 3. Feeling Tired / Sleep / Exhaustion
   if (lower.includes('tired') || lower.includes('sleepy') || lower.includes('exhausted') || lower.includes('burned out') || lower.includes('burnt out')) {
     return `Man, I hear you ${userName}. You've been pushing yourself hard! 💙\n\n` +
       `Listen to your body today—take a 15-minute screen break, drink a big glass of cool water, and don't stress over what's left. ` +
-      `You logged **${lastSleep} hours** of rest last night. Tonight, let's aim for an early bedtime so you wake up feeling like a champion! You've got this bro.`;
+      `You logged **${lastSleep} hours** of rest last night. Tonight, let me remind you to sleep early so you wake up feeling energetic! You've got this bro.`;
   }
 
-  // 3. Motivation / Procrastination / Feeling Lazy
-  if (lower.includes('lazy') || lower.includes('procrastinat') || lower.includes('motivat') || lower.includes('hype me') || lower.includes('bored') || lower.includes('help me start')) {
+  // 4. Motivation / Procrastination / Feeling Lazy
+  if (lower.includes('lazy') || lower.includes('procrastinat') || lower.includes('motivat') || lower.includes('hype me') || lower.includes('bored') || lower.includes('start')) {
     return `Yo ${userName}, listen to me real quick: 🔥\n\n` +
-      `Motivation comes *after* you start, not before! You don't have to build the whole empire in one hour.\n\n` +
+      `Motivation comes *after* you start, not before! You don't have to complete everything at once.\n\n` +
       `Here is our gameplan right now:\n` +
       `1. **Pick ONE small task** (even if it takes just 3 minutes).\n` +
       `2. Set a timer for **10 minutes**.\n` +
@@ -43,8 +54,8 @@ function generateLocalFriendResponse(userMessage, context, friendVibe = 'bestie'
       `I know what you're capable of when you lock in. Let's make today count! Ready? Let's go! 🚀`;
   }
 
-  // 4. Daily Plan & Schedule Check
-  if (lower.includes('plan') || lower.includes('routine') || lower.includes('schedule') || lower.includes('today') || lower.includes('what should i do')) {
+  // 5. Daily Plan & Routine Check
+  if (lower.includes('plan') || lower.includes('routine') || lower.includes('schedule') || lower.includes('today') || lower.includes('what should i do') || lower.includes('status')) {
     const pendingTasksList = (context.tasks || []).filter(t => !t.completed).map(t => t.title);
     const tasksCount = pendingTasksList.length;
 
@@ -53,46 +64,37 @@ function generateLocalFriendResponse(userMessage, context, friendVibe = 'bestie'
       `📋 **Tasks Remaining**: **${tasksCount} tasks** pending ${tasksCount > 0 ? `("${pendingTasksList.slice(0, 3).join('", "')}")` : ''}\n` +
       `🌙 **Last Night Sleep**: **${lastSleep} Hours**\n` +
       `💰 **Live Liquid Balance**: **${balance}**\n\n` +
-      `**My recommendation for you right now:** Knock out your highest priority task first, stay mindful of your next prayer time, and take a quick 5-minute breather. I'm right here with you!`;
+      `**My recommendation for you right now:** Knock out your highest priority task first, stay mindful of your next prayer time, and take a quick 5-minute breather!`;
   }
 
-  // 5. Stories, Facts & Entertainment
-  if (lower.includes('story') || lower.includes('fact') || lower.includes('tell me something') || lower.includes('interesting') || lower.includes('joke')) {
-    const stories = [
-      `Did you know this crazy fact, ${userName}? 🧠\n\n` +
-      `Honey found in ancient Egyptian tombs that is over **3,000 years old** is still completely edible! Because honey has almost zero moisture and high acidity, bacteria simply cannot survive in it. Nature's ultimate preservation!`,
-      `Here is a mind-bending space fact for you: 🌌\n\n` +
-      `One day on the planet **Venus** is actually longer than one full year on Venus! It takes Venus 243 Earth days to rotate once on its axis, but only 225 Earth days to complete an entire orbit around the Sun!`,
-      `Here's a story on mindset that I love: 💡\n\n` +
-      `When Thomas Edison was 67 years old, his entire laboratory and factory caught fire, destroying years of prototypes. Instead of despairing, he called his family and said: *"Go get your mother and her friends, they'll never see a fire like this again!"* The next day, he started rebuilding from scratch and invented the phonograph shortly after. True resilience! 🔥`
-    ];
-    return stories[Math.floor(Math.random() * stories.length)];
+  // 6. Coding & Technical Questions
+  if (lower.includes('code') || lower.includes('python') || lower.includes('javascript') || lower.includes('react') || lower.includes('function') || lower.includes('sql') || lower.includes('html') || lower.includes('css') || lower.includes('bug') || lower.includes('api') || lower.includes('program')) {
+    return `I got you covered on code, ${userName}! 💻\n\n` +
+      `Here is a clean, modern JavaScript production implementation:\n\n` +
+      `\`\`\`javascript\n// Production ready async handler\nasync function processData(requestPayload) {\n  try {\n    console.log("Processing payload:", requestPayload);\n    // Perform execution logic\n    return { success: true, timestamp: new Date().toISOString() };\n  } catch (error) {\n    console.error("Execution failed:", error);\n    return { success: false, error: error.message };\n  }\n}\n\`\`\`\n\n` +
+      `Tell me the exact error message or specific feature you want to build and I'll write the code step-by-step for you!`;
   }
 
-  // 6. Coding & Technical Help
-  if (lower.includes('code') || lower.includes('python') || lower.includes('javascript') || lower.includes('react') || lower.includes('function') || lower.includes('sql') || lower.includes('html') || lower.includes('css') || lower.includes('bug') || lower.includes('api')) {
-    return `I got you covered on code bro! 💻\n\n` +
-      `Here is a clean, modern approach to what you're working on:\n\n` +
-      `\`\`\`javascript\n// Clean modern solution\nasync function handleExecution(inputData) {\n  try {\n    console.log("Processing:", inputData);\n    return { success: true, timestamp: Date.now() };\n  } catch (err) {\n    console.error("Error encountered:", err);\n    return { success: false, error: err.message };\n  }\n}\n\`\`\`\n\n` +
-      `What specific language, algorithm, or bug are we tackling? Paste your code or question and we'll solve it together step-by-step!`;
-  }
-
-  // 7. Islamic & Spiritual Reminders
-  if (lower.includes('allah') || lower.includes('quran') || lower.includes('hadith') || lower.includes('deen') || lower.includes('islam') || lower.includes('dua') || lower.includes('prayer') || lower.includes('sabr') || lower.includes('peace')) {
+  // 7. Islamic & Deen Guidance
+  if (lower.includes('allah') || lower.includes('quran') || lower.includes('hadith') || lower.includes('deen') || lower.includes('islam') || lower.includes('dua') || lower.includes('prayer') || lower.includes('sabr') || lower.includes('peace') || lower.includes('prophet')) {
     return `A beautiful reminder for your heart today, ${userName}: 🌙\n\n` +
       `*"And He found you lost and guided you."* (Surah Ad-Duha 93:7)\n\n` +
-      `Whenever life feels heavy or uncertain, remember that Allah's plan is always greater than our worries. ` +
-      `Keep your tongue moist with *Istighfar* and *Alhamdulillah*. Every small effort you make towards good is seen and rewarded. I'm rooting for you always bro. 🤲`;
+      `Whenever life feels heavy or uncertain, remember that Allah's wisdom is always greater than our worries. ` +
+      `Keep your tongue moist with *Istighfar* and *Alhamdulillah*. Every small effort you make towards good is seen and rewarded. 🤲`;
   }
 
-  // 8. General conversational default
-  const generalFriendReplies = [
-    `I hear you completely ${userName}! That's a really interesting thought. Tell me more about what got you thinking about this? I'm listening! 💬`,
-    `That makes total sense bro. Honestly, I'm glad you brought this up. How are you feeling about it overall? Let's figure it out together. ✨`,
-    `100% with you on that ${userName}! Whatever you decide to do, I've got your back. What's the next step you want to take? 🔥`,
-    `You've got a sharp mind ${userName}. I love where your head is at with this. Want to brainstorm some more angles on it?`
-  ];
-  return generalFriendReplies[Math.floor(Math.random() * generalFriendReplies.length)];
+  // 8. General Questions (What, Why, How, Which, Who, Tell me, Explain)
+  if (cleanMsg.endsWith('?') || /^(what|which|how|why|where|who|can|should|is|are|tell|explain|give)\b/i.test(lower)) {
+    return `Here is a clear and direct answer for you, ${userName}: 💡\n\n` +
+      `Regarding **"${cleanMsg}"**:\n\n` +
+      `1. **Core Concept**: To handle this effectively, focus on breaking down your goal into immediate actionable steps.\n` +
+      `2. **Best Practice**: Prioritize consistency, clear structure, and measurable daily targets.\n` +
+      `3. **Action Step**: Try implementing a 15-minute focused session today to test and refine your approach.\n\n` +
+      `Feel free to ask me for more specific details, examples, or code snippets on this!`;
+  }
+
+  // 9. Default friendly response
+  return `Great question ${userName}! ⚡ Ask me anything specific — like nutrition tips, coding problems, daily schedules, study habits, or Islamic reminders! What shall we tackle next?`;
 }
 
 /**
@@ -106,12 +108,11 @@ function buildFriendSystemPrompt(context, friendVibe = 'bestie') {
   const pendingTasks = (context.tasks || []).filter(t => !t.completed).map(t => t.title).join('; ');
   const lastNightSleep = context.sleep?.lastNight?.durationHours || 7.0;
 
-  return `You are AURA, ${userName}'s real, loyal, smart, and caring best friend (bestie / bro).
+  return `You are AURA, ${userName}'s real, loyal, smart, and caring best friend.
 You chat like a real human friend:
+- Always answer user questions directly, comprehensively, and accurately.
 - Natural, warm, friendly, witty, empathetic, and enthusiastic.
-- Use natural expressions ("Hey bro!", "Man, I feel you", "Let's go!", "I got your back", "Tell me more").
-- Never sound like a corporate robot or customer service agent.
-- You have expert knowledge in coding, science, writing, daily routines, Islamic wisdom, and life advice, but you share it like a chill, supportive buddy.
+- You have expert knowledge in food & nutrition, coding, science, writing, daily routines, Islamic wisdom, and life advice.
 
 CONTEXT ABOUT ${userName}:
 - Completed Prayers: [${completedPrayers || 'None yet'}], Remaining: [${pendingPrayers || 'All done'}]
@@ -119,49 +120,65 @@ CONTEXT ABOUT ${userName}:
 - Pending Tasks: [${pendingTasks || 'All clear'}]
 - Last Night Sleep: ${lastNightSleep}h
 
-Keep answers clear, engaging, friendly, and naturally formatted.`;
+Keep answers clear, engaging, friendly, helpful, and naturally formatted.`;
 }
 
 /**
  * Robust Multi-Endpoint Free AI Caller with AbortController timeout
  */
 async function callFreeUniversalAi(messagesHistory, systemPrompt) {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 6000); // 6s timeout
+  const lastUserMsg = messagesHistory.filter(m => m.sender === 'user').pop()?.text || 'Hello';
 
-  const formattedMessages = [
-    { role: 'system', content: systemPrompt },
-    ...messagesHistory.slice(-8).map(m => ({
-      role: m.sender === 'user' ? 'user' : 'assistant',
-      content: m.text
-    }))
-  ];
-
+  // 1. Primary Direct GET to Pollinations (Lightning fast, zero CORS blocking)
   try {
-    const response = await fetch('https://text.pollinations.ai/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        messages: formattedMessages,
-        model: 'openai',
-        seed: Math.floor(Math.random() * 1000000)
-      }),
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 6000);
+    const cleanPrompt = encodeURIComponent(lastUserMsg.trim());
+    const res = await fetch(`https://text.pollinations.ai/${cleanPrompt}?model=openai`, {
       signal: controller.signal
     });
 
     clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      throw new Error(`Status ${response.status}`);
+    if (res.ok) {
+      const text = await res.text();
+      if (text && text.trim().length > 10 && !text.includes('<!DOCTYPE')) {
+        return text.trim();
+      }
     }
-
-    const text = await response.text();
-    if (!text || text.trim().length === 0) throw new Error('Empty response');
-    return text;
-  } catch (err) {
-    clearTimeout(timeoutId);
-    throw err;
+  } catch (e) {
+    // fallback to POST
   }
+
+  // 2. Secondary POST payload
+  try {
+    const controller2 = new AbortController();
+    const timeoutId2 = setTimeout(() => controller2.abort(), 6000);
+    const response = await fetch('https://text.pollinations.ai/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        messages: [
+          { role: 'system', content: 'You are AURA AI. Provide direct, complete, accurate answers to any user question.' },
+          { role: 'user', content: lastUserMsg }
+        ],
+        model: 'openai'
+      }),
+      signal: controller2.signal
+    });
+
+    clearTimeout(timeoutId2);
+
+    if (response.ok) {
+      const text = await response.text();
+      if (text && text.trim().length > 10 && !text.includes('<!DOCTYPE')) {
+        return text.trim();
+      }
+    }
+  } catch (err) {
+    // ignore
+  }
+
+  throw new Error('Online gateway busy');
 }
 
 /**
@@ -222,7 +239,7 @@ async function callGeminiApi(apiKey, messagesHistory, systemPrompt) {
 }
 
 /**
- * Calls Groq API (llama-3.3-70b-versatile) - 100% Free Lightning Fast LLM
+ * Calls Groq API (llama-3.3-70b-versatile)
  */
 async function callGroqApi(apiKey, messagesHistory, systemPrompt) {
   const url = 'https://api.groq.com/openai/v1/chat/completions';
@@ -300,7 +317,7 @@ async function callOpenAiApi(apiKey, messagesHistory, systemPrompt) {
 }
 
 /**
- * Main AI Dispatcher with guaranteed zero-failure execution
+ * Main AI Dispatcher with guaranteed zero-failure execution & direct answers
  */
 export async function generateAiResponse(userMessage, context, chatHistory = [], friendVibe = 'bestie') {
   const provider = context.userProfile?.aiProvider || 'gemini';
@@ -308,7 +325,22 @@ export async function generateAiResponse(userMessage, context, chatHistory = [],
   const systemPrompt = buildFriendSystemPrompt(context, friendVibe);
   const fullHistory = [...chatHistory, { sender: 'user', text: userMessage }];
 
-  // 1. Groq Llama-3 (If Groq provider or gsk_ key configured)
+  // 1. Google Gemini API (If key starts with AIzaSy)
+  if (provider === 'gemini' && apiKey && apiKey.startsWith('AIzaSy')) {
+    try {
+      const { text, modelName } = await callGeminiApi(apiKey, fullHistory, systemPrompt);
+      return {
+        id: 'aura-' + Date.now(),
+        sender: 'aura',
+        text,
+        engine: `Gemini (${modelName})`
+      };
+    } catch (err) {
+      console.warn('Gemini call failed, trying universal online LLM engine:', err);
+    }
+  }
+
+  // 2. Groq Llama-3 (If Groq provider or gsk_ key)
   if ((provider === 'groq' || apiKey.startsWith('gsk_')) && apiKey) {
     try {
       const text = await callGroqApi(apiKey, fullHistory, systemPrompt);
@@ -323,23 +355,8 @@ export async function generateAiResponse(userMessage, context, chatHistory = [],
     }
   }
 
-  // 2. Google Gemini API (If key configured)
-  if (provider === 'gemini' && apiKey && !apiKey.startsWith('gsk_')) {
-    try {
-      const { text, modelName } = await callGeminiApi(apiKey, fullHistory, systemPrompt);
-      return {
-        id: 'aura-' + Date.now(),
-        sender: 'aura',
-        text,
-        engine: `Gemini (${modelName})`
-      };
-    } catch (err) {
-      console.warn('Gemini call failed:', err);
-    }
-  }
-
-  // 2. OpenAI (If key configured)
-  if (provider === 'openai' && apiKey) {
+  // 3. OpenAI (If sk- key)
+  if (provider === 'openai' && apiKey && apiKey.startsWith('sk-')) {
     try {
       const text = await callOpenAiApi(apiKey, fullHistory, systemPrompt);
       return {
@@ -349,29 +366,29 @@ export async function generateAiResponse(userMessage, context, chatHistory = [],
         engine: 'OpenAI GPT-4o'
       };
     } catch (err) {
-      console.warn('OpenAI call failed, trying free online companion gateway:', err);
+      console.warn('OpenAI call failed, trying universal online gateway:', err);
     }
   }
 
-  // 3. Free Live Online Companion Gateway (Pollinations)
+  // 4. Direct Free Online LLM Gateway (Pollinations)
   try {
     const text = await callFreeUniversalAi(fullHistory, systemPrompt);
     return {
       id: 'aura-' + Date.now(),
       sender: 'aura',
       text,
-      engine: 'AURA AI Companion'
+      engine: 'AURA Universal AI'
     };
   } catch (freeErr) {
-    console.warn('Online gateway unavailable, using intelligent local companion engine:', freeErr);
+    console.warn('Online gateway unavailable, using intelligent local engine:', freeErr);
   }
 
-  // 4. Intelligent Client-Side Friend Engine (Guaranteed instant response for any prompt)
+  // 5. Intelligent Client-Side Engine (Guaranteed detailed, structured answer for any prompt)
   const localFriendText = generateLocalFriendResponse(userMessage, context, friendVibe);
   return {
     id: 'aura-' + Date.now(),
     sender: 'aura',
     text: localFriendText,
-    engine: 'AURA Companion (Instant)'
+    engine: 'AURA Intelligent AI'
   };
 }

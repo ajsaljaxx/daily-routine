@@ -106,13 +106,13 @@ export default function PwaInstallPrompt() {
             alignItems: 'center',
             justifyContent: 'center',
             flexShrink: 0,
-            background: '#0d172a'
+            background: '#FFFFFF'
           }}
         >
           <img 
-            src="/aura-logo.jpg" 
+            src="/aura-logo.svg" 
             alt="AURA Logo" 
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+            style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '2px' }} 
           />
         </div>
 

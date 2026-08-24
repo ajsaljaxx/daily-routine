@@ -26,6 +26,29 @@ export const getLocalDateString = (d = new Date()) => {
   return `${year}-${month}-${day}`;
 };
 
+export const getCurrentResetCycle = (resetTimeStr = "12:00") => {
+  const now = new Date();
+  const timeParts = (resetTimeStr || "12:00").split(':').map(Number);
+  const targetH = isNaN(timeParts[0]) ? 12 : timeParts[0];
+  const targetM = isNaN(timeParts[1]) ? 0 : timeParts[1];
+
+  const todayReset = new Date(now.getFullYear(), now.getMonth(), now.getDate(), targetH, targetM, 0, 0);
+
+  if (now >= todayReset) {
+    return {
+      cycleId: `${getLocalDateString(now)}_${resetTimeStr}`,
+      dateStr: getLocalDateString(now)
+    };
+  } else {
+    const yesterday = new Date(now);
+    yesterday.setDate(yesterday.getDate() - 1);
+    return {
+      cycleId: `${getLocalDateString(yesterday)}_${resetTimeStr}`,
+      dateStr: getLocalDateString(yesterday)
+    };
+  }
+};
+
 const STORAGE_KEYS = {
   PROFILE: 'aura_user_profile',
   PRAYERS: 'aura_prayers',
@@ -43,7 +66,8 @@ const STORAGE_KEYS = {
   NOTIFICATIONS: 'aura_notifications',
   ACTIVE_PAGE: 'aura_active_page',
   DAY_COUNTER: 'aura_day_counter',
-  STREAK_START_DATE: 'aura_streak_start_date'
+  STREAK_START_DATE: 'aura_streak_start_date',
+  DAILY_HISTORY: 'aura_daily_history'
 };
 
 function loadStorage(key, fallback) {
@@ -65,8 +89,15 @@ function saveStorage(key, value) {
 }
 
 export function AppProvider({ children }) {
-  // State Initialization with local storage fallback
-  const [userProfile, setUserProfile] = useState(() => loadStorage(STORAGE_KEYS.PROFILE, INITIAL_USER_PROFILE));
+  // State Initialization with local storage fallback & environment API key priority
+  const [userProfile, setUserProfile] = useState(() => {
+    const loaded = loadStorage(STORAGE_KEYS.PROFILE, INITIAL_USER_PROFILE);
+    const envKey = (import.meta.env.VITE_GEMINI_API_KEY || '').trim();
+    if (envKey) {
+      return { ...loaded, aiApiKey: envKey, aiProvider: 'gemini' };
+    }
+    return loaded;
+  });
   const [prayers, setPrayers] = useState(() => loadStorage(STORAGE_KEYS.PRAYERS, INITIAL_PRAYERS));
   const [quran, setQuran] = useState(() => loadStorage(STORAGE_KEYS.QURAN, INITIAL_QURAN));
   const [habits, setHabits] = useState(() => loadStorage(STORAGE_KEYS.HABITS, INITIAL_HABITS));
@@ -104,6 +135,7 @@ export function AppProvider({ children }) {
   const [streakStartDate, setStreakStartDate] = useState(() => 
     loadStorage(STORAGE_KEYS.STREAK_START_DATE, getLocalDateString())
   );
+  const [dailyHistory, setDailyHistory] = useState(() => loadStorage(STORAGE_KEYS.DAILY_HISTORY, []));
 
   // Sync to LocalStorage
   useEffect(() => saveStorage(STORAGE_KEYS.PROFILE, userProfile), [userProfile]);
@@ -122,6 +154,7 @@ export function AppProvider({ children }) {
   useEffect(() => saveStorage(STORAGE_KEYS.NOTIFICATIONS, notifications), [notifications]);
   useEffect(() => saveStorage(STORAGE_KEYS.ACTIVE_PAGE, activePage), [activePage]);
   useEffect(() => saveStorage(STORAGE_KEYS.STREAK_START_DATE, streakStartDate), [streakStartDate]);
+  useEffect(() => saveStorage(STORAGE_KEYS.DAILY_HISTORY, dailyHistory), [dailyHistory]);
 
   // Calculate current day streak automatically based on calendar days elapsed (local timezone)
   const calculateDayCounter = () => {
@@ -160,9 +193,6 @@ export function AppProvider({ children }) {
   // Reset all daily trackers to initial unselected state for a new day
   const resetDailyProgress = () => {
     const todayStr = new Date().toISOString().split('T')[0];
-    const fromT = userProfile?.targetSleepTime || "23:00";
-    const toT = userProfile?.targetWakeTime || "05:30";
-    const baseSleepHours = calculateDuration(fromT, toT);
 
     // 1. Reset Swalah Prayers to uncompleted (nothing selected)
     setPrayers(prev => prev.map(p => ({ ...p, completed: false })));
@@ -187,22 +217,51 @@ export function AppProvider({ children }) {
     }));
   };
 
-  // Automatic Calendar Midnight Rollover (12:00 AM)
+  // Store today's / that day's completed data into history archive before resetting
+  const archiveAndResetDailyData = (customDateStr = null) => {
+    const targetDate = customDateStr || getLocalDateString();
+
+    const archiveRecord = {
+      date: targetDate,
+      archivedAt: new Date().toISOString(),
+      prayers: (prayers || []).map(p => ({ id: p.id, name: p.name, completed: !!p.completed })),
+      quran: {
+        pagesReadToday: quran?.pagesReadToday || 0,
+        currentJuz: quran?.currentJuz || 1,
+        completedToday: !!quran?.completedToday
+      },
+      habits: (habits || []).map(h => ({ id: h.id, name: h.name, completedToday: !!h.completedToday, streak: h.streak })),
+      tasksCompleted: (tasks || []).filter(t => t.completed).map(t => ({ id: t.id, title: t.title })),
+      waterGlasses: waterGlasses || 0,
+      sleepHours: sleep?.lastNight?.durationHours || 0
+    };
+
+    setDailyHistory(prev => {
+      const filtered = (prev || []).filter(item => item.date !== targetDate);
+      return [archiveRecord, ...filtered].slice(0, 365);
+    });
+
+    resetDailyProgress();
+  };
+
+  // Automatic Daily Rollover based on configured Reset Time (Default: 12:00 PM)
   useEffect(() => {
     const checkRollover = () => {
-      const todayStr = getLocalDateString();
-      const lastDate = loadStorage('aura_last_active_date', null);
+      const resetTime = userProfile?.dailyResetTime || "12:00";
+      const { cycleId, dateStr } = getCurrentResetCycle(resetTime);
+      const lastCycle = loadStorage('aura_last_reset_cycle', null);
 
-      if (lastDate && lastDate !== todayStr) {
-        resetDailyProgress();
+      if (lastCycle && lastCycle !== cycleId) {
+        const prevDateStr = lastCycle.split('_')[0] || dateStr;
+        archiveAndResetDailyData(prevDateStr);
       }
-      saveStorage('aura_last_active_date', todayStr);
+      saveStorage('aura_last_reset_cycle', cycleId);
     };
 
     checkRollover();
-    const interval = setInterval(checkRollover, 30000); // Check every 30s
+    const interval = setInterval(checkRollover, 15000); // Check every 15s
     return () => clearInterval(interval);
-  }, []);
+  }, [userProfile?.dailyResetTime, prayers, quran, habits, tasks, waterGlasses, sleep]);
 
   const resetDay = () => {
     const todayStr = getLocalDateString();
@@ -296,26 +355,56 @@ export function AppProvider({ children }) {
   // Qur'an Handlers
   const updateQuranPages = (delta) => {
     setQuran(prev => {
+      const target = prev.targetPagesPerDay || 20;
       const newPages = Math.max(0, (prev.pagesReadToday || 0) + delta);
-      const isComplete = newPages >= prev.targetPagesPerDay;
+      const isComplete = newPages >= target;
+
+      let nextJuz = prev.currentJuz || 1;
+      let nextTotalJuzCompleted = prev.totalJuzCompleted || 0;
+      let nextSurah = prev.currentSurah;
+      let nextStreak = prev.streak || 0;
+
+      // When reaching/completing 20 pages (1 Juz goal), advance to next Juz automatically
       if (isComplete && !prev.completedToday) {
         triggerCelebration();
-        showToast(`Qur'an 1 Juz daily goal achieved (${newPages} pages)! 📖✨`, 'success');
+        nextJuz = prev.currentJuz < 30 ? prev.currentJuz + 1 : 1;
+        nextTotalJuzCompleted = (prev.totalJuzCompleted || 0) + 1;
+        const juzInfo = JUZ_NAMES.find(j => j.juz === nextJuz);
+        if (juzInfo) {
+          nextSurah = juzInfo.surah;
+        }
+        nextStreak = (prev.streak || 0) + 1;
+
+        // Reset page selection to initial 0 state after 3 seconds
+        setTimeout(() => {
+          setQuran(q => ({
+            ...q,
+            pagesReadToday: 0,
+            completedToday: false
+          }));
+        }, 3000);
       }
+
       return {
         ...prev,
         pagesReadToday: newPages,
-        completedToday: isComplete
+        completedToday: isComplete,
+        currentJuz: nextJuz,
+        totalJuzCompleted: nextTotalJuzCompleted,
+        currentSurah: nextSurah,
+        streak: nextStreak
       };
     });
   };
 
   const setQuranJuz = (juzNumber) => {
+    const num = Number(juzNumber);
+    const juzInfo = JUZ_NAMES.find(j => j.juz === num);
     setQuran(prev => ({
       ...prev,
-      currentJuz: Number(juzNumber)
+      currentJuz: num,
+      currentSurah: juzInfo ? juzInfo.surah : prev.currentSurah
     }));
-    showToast(`Current Qur'an Juz updated to Juz ${juzNumber}`, 'info');
   };
 
   // Habits Handlers
@@ -1126,6 +1215,9 @@ export function AppProvider({ children }) {
         decrementDay,
         resetDay,
         resetDailyProgress,
+        dailyHistory,
+        archiveAndResetDailyData,
+        resetAndArchiveNow: archiveAndResetDailyData,
         resetToSampleData,
         exportAllData,
         exportAllDataPdf: exportCustomDataPdf,

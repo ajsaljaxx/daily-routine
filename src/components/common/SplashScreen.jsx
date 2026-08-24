@@ -141,14 +141,14 @@ export default function SplashScreen({ isOpen, onClose, userName = 'Ajsal' }) {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: '#0d172a',
+            background: '#FFFFFF',
             marginBottom: '18px'
           }}
         >
           <img 
-            src="/aura-logo.jpg" 
+            src="/aura-logo.svg" 
             alt="AURA Logo" 
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+            style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '4px' }} 
           />
         </div>
 
